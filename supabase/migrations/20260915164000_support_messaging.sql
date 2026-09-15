@@ -18,6 +18,8 @@ create table if not exists public.support_messages (
 
 create index if not exists support_conversations_org_updated_idx on public.support_conversations (organization_id, updated_at desc);
 create index if not exists support_messages_conversation_created_idx on public.support_messages (conversation_id, created_at);
+create unique index if not exists support_one_open_conversation_per_user_org_idx
+  on public.support_conversations (organization_id, user_id) where status = 'open';
 alter table public.support_conversations enable row level security;
 alter table public.support_messages enable row level security;
 
@@ -30,6 +32,9 @@ create trigger support_message_touches_conversation after insert on public.suppo
 create policy "support participants read conversations" on public.support_conversations for select using (user_id = auth.uid() or public.is_platform_admin());
 create policy "support users create conversations" on public.support_conversations for insert with check (user_id = auth.uid() and exists (select 1 from public.organization_members m where m.organization_id = support_conversations.organization_id and m.user_id = auth.uid()));
 create policy "support admins update conversations" on public.support_conversations for update using (public.is_platform_admin()) with check (public.is_platform_admin());
+create policy "support users reopen conversations" on public.support_conversations for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+revoke update on public.support_conversations from authenticated;
+grant update (status) on public.support_conversations to authenticated;
 create policy "support participants read messages" on public.support_messages for select using (exists (select 1 from public.support_conversations c where c.id = conversation_id and (c.user_id = auth.uid() or public.is_platform_admin())));
 create policy "support participants send messages" on public.support_messages for insert with check (sender_id = auth.uid() and exists (select 1 from public.support_conversations c where c.id = conversation_id and ((sender_role = 'customer' and c.user_id = auth.uid()) or (sender_role = 'admin' and public.is_platform_admin()))));
 
