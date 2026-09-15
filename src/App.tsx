@@ -277,7 +277,8 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
   type AdminSection = 'Overview' | 'Users' | 'Organizations' | 'Branches' | 'Inventory' | 'Sales' | 'Notifications' | 'Audit log' | 'Monitoring' | 'Settings'
   type AdminRow = Record<string, string | number | null>
   type AuditEntry = { source: string; id: string; action: string; actor: string | null; target: string; organizationId: string | null; metadata: Record<string, unknown>; createdAt: string; category: string; severity: 'info' | 'warning' | 'critical' }
-  type MonitorMetric = { name: string; source: string; latency: number | null; status: 'healthy' | 'failed' | 'unavailable' | 'configuration'; detail: string; checkedAt: string; failure?: string }
+  type MonitorMetric = { name: string; source: string; latency: number | null; status: 'healthy' | 'failed' | 'unavailable' | 'configuration'; detail: string; checkedAt: string; failure?: string; httpStatus?: number | null }
+  type MonitorSummary = { service: string; checks: number; healthy: number; failed: number; unavailable: number; configuration: number; uptime_percent: number | null; average_latency_ms: number | null }
   const formatAdminValue = (column: string, value: string | number | null) => {
     if (value == null || value === '') return '—'
     if (['created_at', 'updated_at', 'last_sign_in_at', 'sent_at'].includes(column)) {
@@ -318,9 +319,8 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.localStorage.getItem('zerobyte.admin-sidebar-collapsed') === 'true')
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [monitorMetrics, setMonitorMetrics] = useState<MonitorMetric[]>([])
-  const [monitorHistory, setMonitorHistory] = useState<MonitorMetric[]>(() => {
-    try { return JSON.parse(window.localStorage.getItem('zerobyte.admin-monitor-history') ?? '[]') as MonitorMetric[] } catch { return [] }
-  })
+  const [monitorHistory, setMonitorHistory] = useState<MonitorMetric[]>([])
+  const [monitorSummary, setMonitorSummary] = useState<MonitorSummary[]>([])
   const [monitorLoading, setMonitorLoading] = useState(false)
   const [monitorError, setMonitorError] = useState('')
   const [monitorUpdatedAt, setMonitorUpdatedAt] = useState<string | null>(null)
@@ -330,6 +330,26 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
   const monitorRealtimeStatus = useRef<string | null>(null)
   const monitorRealtimeWait = useRef<Promise<{ status: MonitorMetric['status']; detail: string }> | null>(null)
   const monitorRunInProgress = useRef(false)
+  const loadPersistedMonitoring = useCallback(async (period = '7d') => {
+    if (!adminSupabase) return
+    const { data, error } = await adminSupabase.rpc('get_platform_monitoring', { period_key: period })
+    if (error) {
+      if (!error.message.includes('does not exist')) setMonitorError(error.message)
+      return
+    }
+    setMonitorHistory((data?.measurements ?? []).map((metric: { service: string; source: string; status: MonitorMetric['status']; latency_ms: number | null; detail: string; checked_at: string; http_status?: number | null }) => ({
+      name: metric.service, source: metric.source, status: metric.status, latency: metric.latency_ms, detail: metric.detail, checkedAt: metric.checked_at, httpStatus: metric.http_status,
+    })))
+    setMonitorSummary((data?.summary ?? []) as MonitorSummary[])
+  }, [])
+  useEffect(() => {
+    if (!adminSupabase || section !== 'Monitoring') return
+    void loadPersistedMonitoring(monitorRange === 'all' ? '7d' : monitorRange)
+    const channel = adminSupabase.channel(`platform-monitoring-${Date.now()}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'platform_monitoring_measurements' }, () => void loadPersistedMonitoring(monitorRange === 'all' ? '7d' : monitorRange))
+      .subscribe()
+    return () => { void adminSupabase?.removeChannel(channel) }
+  }, [loadPersistedMonitoring, monitorRange, section])
   useEffect(() => {
     if (!adminSupabase) return
     adminSupabase.rpc('get_platform_overview').then(({ data, error }) => {
@@ -509,22 +529,28 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
         return waitPromise
       }
       const metrics = await Promise.all([
-        measure('API', 'Supabase', () => token ? fetchProbe(`${supabaseUrl}/rest/v1/organizations?select=id&limit=1`, adminAuthHeaders(token, anonKey)) : Promise.resolve({ status: 'failed' as const, detail: 'No active admin session' })),
+        measure('API', 'Supabase REST', () => token ? fetchProbe(`${supabaseUrl}/rest/v1/organizations?select=id&limit=1`, adminAuthHeaders(token, anonKey)) : Promise.resolve({ status: 'failed' as const, detail: 'No active admin session' })),
         measure('Database', 'Supabase', async () => { const { error } = await withTimeout(client.rpc('get_platform_overview')); return error ? { status: 'failed', detail: error.message } : { status: 'healthy', detail: 'Overview RPC completed' } }),
         measure('Auth', 'Supabase Auth', async () => session ? { status: 'healthy', detail: `Session for ${session.user.email ?? 'signed-in admin'}` } : { status: 'failed', detail: 'No active admin session' }),
         measure('Storage', 'Supabase Storage', async () => { const { error } = await withTimeout(client.storage.listBuckets()); return error ? { status: 'failed', detail: error.message } : { status: 'healthy', detail: 'Bucket listing completed' } }),
         measure('Realtime', 'Supabase Realtime', realtime),
         measure('Edge Functions', 'Supabase', () => token ? fetchProbe(`${supabaseUrl}/functions/v1/get-platform-records?resource=Notifications`, adminAuthHeaders(token, anonKey)) : Promise.resolve({ status: 'failed' as const, detail: 'No active admin session' })),
+        measure('Frontend', 'Current browser', () => fetchProbe(window.location.href)),
         measure('GitHub', 'GitHub API', async () => { const repository = import.meta.env.VITE_GITHUB_REPOSITORY; return repository ? fetchProbe(`https://api.github.com/repos/${repository}`, { Accept: 'application/vnd.github+json' }) : { status: 'configuration', detail: 'Repository is not configured for browser checks' } }),
         measure('Vercel', 'Vercel', async () => { const deploymentUrl = import.meta.env.VITE_VERCEL_PROJECT_URL; return deploymentUrl ? fetchProbe(deploymentUrl) : { status: 'configuration', detail: 'Deployment URL is not configured for browser checks' } }),
       ])
       const checkedAt = new Date().toISOString()
       setMonitorMetrics(metrics)
-      setMonitorHistory((current) => {
-        const next = [...current, ...metrics.map((metric) => ({ ...metric, checkedAt }))].slice(-240)
-        window.localStorage.setItem('zerobyte.admin-monitor-history', JSON.stringify(next))
-        return next
-      })
+      if (client) {
+        const { error } = await client.rpc('record_platform_monitoring_measurements', {
+          measurements: metrics.map((metric) => ({
+            service: metric.name, source: metric.source, status: metric.status, latency_ms: metric.latency,
+            detail: metric.detail, checked_at: metric.checkedAt, http_status: metric.httpStatus ?? null,
+          })),
+        })
+        if (error && !error.message.includes('does not exist')) setMonitorError(`Checks completed but could not be persisted: ${error.message}`)
+        else void loadPersistedMonitoring(monitorRange === 'all' ? '7d' : monitorRange)
+      }
       setMonitorUpdatedAt(checkedAt)
     } catch (reason) {
       setMonitorError(reason instanceof Error ? reason.message : 'Monitoring checks could not be completed.')
@@ -532,7 +558,7 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
       monitorRunInProgress.current = false
       setMonitorLoading(false)
     }
-  }, [])
+  }, [loadPersistedMonitoring, monitorRange])
   useEffect(() => {
     if (section !== 'Monitoring') return
     void runMonitoringChecks()
@@ -637,7 +663,10 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
       const failures = monitorMetrics.filter((metric) => metric.status === 'failed')
       const overall = monitorMetrics.some((metric) => metric.status === 'failed') ? 'Action needed' : monitorMetrics.some((metric) => metric.status === 'configuration' || metric.status === 'unavailable') ? 'Partial coverage' : monitorMetrics.length ? 'Healthy' : 'Waiting for checks'
       const historyPoints = monitorHistory.filter((metric) => metric.latency != null && (!rangeStart || new Date(metric.checkedAt).getTime() >= rangeStart)).slice(-48)
-      return <section className="admin-card wide monitoring-page"><div className="admin-card-header"><div><h2>Infrastructure &amp; system health</h2><p>Checks run from this browser against configured services. No global uptime or synthetic metrics are reported.</p></div><div className="admin-actions-inline"><span className={`admin-pill ${overall === 'Healthy' ? 'success' : ''}`}>{overall}{monitorUpdatedAt ? ` · ${new Date(monitorUpdatedAt).toLocaleTimeString('en-NG')}` : ''}</span><button className="secondary" onClick={() => void runMonitoringChecks()} disabled={monitorLoading}><RefreshCw size={14} className={monitorLoading ? 'spin' : ''} />{monitorLoading ? 'Checking…' : 'Run checks'}</button></div></div>{monitorError && <div className="form-error" role="alert">{monitorError}</div>}<div className="monitoring-filters"><label>Status<select value={monitorStatusFilter} onChange={(event) => setMonitorStatusFilter(event.target.value)}><option value="all">All states</option><option value="healthy">Healthy</option><option value="failed">Failed</option><option value="configuration">Configuration needed</option><option value="unavailable">Unavailable</option></select></label><label>Time range<select value={monitorRange} onChange={(event) => setMonitorRange(event.target.value)}><option value="all">Current check set</option><option value="24h">Last 24 hours</option><option value="7d">Last 7 days</option></select></label></div><div className="admin-monitor-grid">{visibleMetrics.map((metric) => <article className="admin-monitor-card" key={metric.name}><div className="admin-card-label">{metric.name} <span>· {metric.source}</span></div><strong>{metric.latency == null ? 'Not measured' : `${metric.latency} ms`}</strong><span className={`admin-status ${metric.status === 'healthy' ? 'active' : metric.status === 'failed' ? 'failed' : ''}`}>{metric.status === 'healthy' ? 'Healthy response' : metric.status === 'failed' ? 'Request failed' : metric.status === 'configuration' ? 'Not configured' : 'Unavailable'}</span><small>{metric.detail}</small><time>{new Date(metric.checkedAt).toLocaleString('en-NG')}</time></article>)}</div>{monitorLoading && <div className="admin-line-skeleton"><Skeleton /><Skeleton /><Skeleton /></div>}<section className="monitoring-history"><div className="admin-card-header"><div><h3>Collected response history</h3><p>{historyPoints.length ? `${historyPoints.length} measured checks · browser session data only` : 'No measured checks collected yet.'}</p></div></div>{historyPoints.length > 1 && <div className="monitor-history-chart" aria-label="Collected response latency history">{historyPoints.map((point, index) => <i key={`${point.name}-${point.checkedAt}-${index}`} title={`${point.name}: ${point.latency} ms`} style={{ height: `${Math.max(8, Math.min(100, (point.latency ?? 0) / Math.max(...historyPoints.map((item) => item.latency ?? 0), 1) * 100))}%` }} />)}</div>}</section><section className="monitoring-failures"><h3>Recent failures</h3>{failures.length ? failures.map((metric) => <div key={metric.name}><strong>{metric.name}</strong><span>{metric.failure}</span><time>{new Date(metric.checkedAt).toLocaleString('en-NG')}</time></div>) : <p>No failures recorded in the current browser check.</p>}</section><div className="monitoring-notes"><Wifi size={16} /><span>Latency is measured only for requests made here, from this device and network. Configuration states have no latency, and no uptime percentage is inferred.</span></div></section>
+      const statusTotals = monitorHistory.reduce((totals, metric) => { totals[metric.status] += 1; return totals }, { healthy: 0, failed: 0, unavailable: 0, configuration: 0 })
+      const measuredCount = statusTotals.healthy + statusTotals.failed
+      const availability = measuredCount ? `${Math.round(statusTotals.healthy / measuredCount * 100)}%` : 'Not enough data'
+      return <section className="admin-card wide monitoring-page"><div className="admin-card-header"><div><h2>Infrastructure &amp; system health</h2><p>Persisted probe observations from this admin browser. Uptime is calculated only from stored healthy/failed checks; it is not a provider SLA.</p></div><div className="admin-actions-inline"><span className={`admin-pill ${overall === 'Healthy' ? 'success' : ''}`}>{overall}{monitorUpdatedAt ? ` · ${new Date(monitorUpdatedAt).toLocaleTimeString('en-NG')}` : ''}</span><button className="secondary" onClick={() => void runMonitoringChecks()} disabled={monitorLoading}><RefreshCw size={14} className={monitorLoading ? 'spin' : ''} />{monitorLoading ? 'Checking…' : 'Run checks'}</button></div></div>{monitorError && <div className="form-error" role="alert">{monitorError}</div>}<div className="monitoring-filters"><label>Status<select value={monitorStatusFilter} onChange={(event) => setMonitorStatusFilter(event.target.value)}><option value="all">All states</option><option value="healthy">Healthy</option><option value="failed">Failed</option><option value="configuration">Configuration needed</option><option value="unavailable">Unavailable</option></select></label><label>Time range<select value={monitorRange} onChange={(event) => setMonitorRange(event.target.value)}><option value="all">Current check set</option><option value="24h">Last 24 hours</option><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option></select></label></div><div className="monitoring-summary"><article><span>Observed availability</span><strong>{availability}</strong><small>{measuredCount ? `${statusTotals.healthy} healthy / ${statusTotals.failed} failed` : 'No persisted checks yet'}</small></article><article><span>Persisted observations</span><strong>{monitorHistory.length}</strong><small>Across configured services</small></article><article><span>Current errors</span><strong>{statusTotals.failed}</strong><small>Failed probes in selected history</small></article></div><div className="admin-monitor-grid">{visibleMetrics.map((metric) => <article className="admin-monitor-card" key={metric.name}><div className="admin-card-label">{metric.name} <span>· {metric.source}</span></div><strong>{metric.latency == null ? 'Not measured' : `${metric.latency} ms`}</strong><span className={`admin-status ${metric.status === 'healthy' ? 'active' : metric.status === 'failed' ? 'failed' : ''}`}>{metric.status === 'healthy' ? 'Healthy response' : metric.status === 'failed' ? 'Request failed' : metric.status === 'configuration' ? 'Not configured' : 'Unavailable'}</span><small>{metric.detail}</small><time>{new Date(metric.checkedAt).toLocaleString('en-NG')}</time></article>)}</div>{monitorLoading && <div className="admin-line-skeleton"><Skeleton /><Skeleton /><Skeleton /></div>}<div className="monitoring-chart-grid"><section className="monitoring-history"><div className="admin-card-header"><div><h3>Latency history</h3><p>{historyPoints.length ? `${historyPoints.length} persisted response measurements` : 'No persisted measurements yet.'}</p></div></div>{historyPoints.length > 1 && <div className="monitor-history-chart" aria-label="Persisted response latency history">{historyPoints.map((point, index) => <i key={`${point.name}-${point.checkedAt}-${index}`} title={`${point.name}: ${point.latency} ms`} style={{ height: `${Math.max(8, Math.min(100, (point.latency ?? 0) / Math.max(...historyPoints.map((item) => item.latency ?? 0), 1) * 100))}%` }} />)}</div>}</section><section className="monitoring-availability"><div className="admin-card-header"><div><h3>Service availability</h3><p>Observed healthy vs failed checks in the selected period.</p></div></div>{monitorSummary.length ? monitorSummary.map((item) => <div className="availability-row" key={item.service}><strong>{item.service}</strong><span><i style={{ width: `${item.uptime_percent ?? 0}%` }} /></span><b>{item.uptime_percent == null ? 'No data' : `${item.uptime_percent}%`}</b><small>{item.checks} checks · {item.failed} failed</small></div>) : <p className="monitoring-empty">No persisted service history yet.</p>}</section></div><section className="monitoring-failures"><h3>Recent failures</h3>{failures.length ? failures.map((metric) => <div key={metric.name}><strong>{metric.name}</strong><span>{metric.failure}</span><time>{new Date(metric.checkedAt).toLocaleString('en-NG')}</time></div>) : <p>No failures recorded in the current browser check.</p>}</section><div className="monitoring-notes"><Wifi size={16} /><span>Observations are authenticated, bounded, and stored in Supabase. Browser checks describe this admin device and network only; missing checks are unknown, not downtime. GitHub and Vercel remain unmeasured until configured.</span></div></section>
     }
     if (section === 'Settings') return <section className="admin-card wide"><div className="admin-card-header"><div><h2>Admin settings</h2><p>Profile and environment-safe controls for this console.</p></div></div><div className="admin-settings"><div><span className="admin-card-label">Signed-in account</span><strong>{email}</strong></div><div><span className="admin-card-label">Access model</span><strong>Platform admin role + Supabase RLS</strong></div><div><span className="admin-card-label">Revenue</span><strong>Unavailable until billing is implemented</strong></div></div></section>
     if (section === 'Audit log') {

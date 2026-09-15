@@ -409,6 +409,23 @@ td:last-child, th:last-child { padding-right: 0; }
 .audit-filters select, .audit-filters input, .monitoring-filters select { min-width: 130px; border: 1px solid #263847; border-radius: 7px; background: #0c1620; color: #eaf3ff; padding: 8px 9px; font-size: 11px; }
 .audit-severity { display: inline-flex; border-radius: 999px; padding: 4px 7px; font-size: 9px; text-transform: capitalize; }
 .audit-severity.info { background: rgba(96,165,250,.12); color: #a8d0ff; }.audit-severity.warning { background: rgba(245,158,11,.13); color: #f8cf80; }.audit-severity.critical { background: rgba(239,68,68,.14); color: #ffaaa7; }
+.monitoring-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 16px 18px 4px; }
+.monitoring-summary article { border: 1px solid #1c2b38; border-radius: 10px; padding: 13px; background: #0e1823; }
+.monitoring-summary span, .monitoring-summary small { display: block; color: #8ea0b2; font-size: 10px; }
+.monitoring-summary strong { display: block; margin: 8px 0 4px; font-size: 22px; letter-spacing: -.04em; }
+.monitoring-chart-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; margin: 16px 18px 0; }
+.monitoring-chart-grid > section { min-width: 0; border: 1px solid #1c2b38; border-radius: 10px; background: #0e1823; overflow: hidden; }
+.monitoring-chart-grid .admin-card-header { padding-bottom: 12px; }
+.monitoring-chart-grid h3 { margin: 0 0 5px; font-size: 14px; }
+.monitor-history-chart { height: 150px; display: flex; align-items: end; gap: 4px; padding: 20px 18px 18px; border-top: 1px solid #1c2b38; background: linear-gradient(180deg, rgba(6,182,212,.08), transparent); }
+.monitor-history-chart i { flex: 1; min-width: 3px; max-width: 18px; background: linear-gradient(180deg, var(--cyan), var(--lime)); border-radius: 3px 3px 0 0; opacity: .85; }
+.monitoring-availability { padding-bottom: 14px; }
+.availability-row { display: grid; grid-template-columns: 108px 1fr auto; gap: 8px; align-items: center; padding: 9px 18px; border-top: 1px solid #1c2b38; font-size: 11px; }
+.availability-row span { height: 7px; border-radius: 99px; background: #1b2a37; overflow: hidden; }
+.availability-row span i { display: block; height: 100%; min-width: 2px; border-radius: inherit; background: #22c55e; }
+.availability-row b { color: #b8f2c6; font-size: 10px; font-weight: 600; }
+.availability-row small { grid-column: 2 / -1; color: #8195a7; font-size: 9px; }
+.monitoring-empty { padding: 4px 18px 12px; color: #8ea0b2; font-size: 11px; }
 .app-version-card { display: flex; justify-content: space-between; margin-bottom: 16px; }.app-version-card h2 { margin: 7px 0; font-size: 17px; }.version-badge { display: inline-flex; margin-left: 6px; padding: 4px 7px; border-radius: 999px; background: #1d3e52; color: #8bd8e7; font: 10px 'DM Mono'; vertical-align: middle; }
 .admin-form { display: grid; gap: 14px; padding: 8px 18px 20px; max-width: 720px; }
 .admin-form label { display: grid; gap: 7px; color: #9aa9b7; font-size: 11px; }
@@ -718,6 +735,7 @@ button:disabled .spin { display: inline-block; }
 @media (max-width: 760px) { .app { display: block; min-height: 100dvh; } .sidebar, .sidebar-collapsed .sidebar { position: fixed; z-index: 20; inset: 0 auto 0 0; transform: translateX(-100%); transition: transform .25s cubic-bezier(.2,.8,.2,1); width: min(280px, 86vw); height: 100dvh; padding: 24px 13px 16px; box-shadow: 10px 0 30px #0005; overflow-y: auto; } .sidebar.open { transform: translateX(0); } .sidebar-collapsed .brand > span, .sidebar-collapsed .brand > small, .sidebar-collapsed .workspace-switcher, .sidebar-collapsed .role-badge span, .sidebar-collapsed .nav-group p, .sidebar-collapsed .nav-item span, .sidebar-collapsed .sidebar-bottom, .sidebar-collapsed .user div:nth-child(2), .sidebar-collapsed .sidebar-collapse span { display: initial; } .sidebar-collapsed .brand { justify-content: initial; padding-inline: 12px; } .sidebar-collapsed .workspace-select { justify-content: initial; padding: 9px; } .sidebar-collapsed .nav-item { justify-content: initial; padding-inline: 12px; } .sidebar-collapsed .role-badge { justify-content: initial; padding-inline: 9px; } .sidebar-collapsed .user { justify-content: initial; padding-inline: 10px; } .sidebar-collapsed .sidebar-collapse span { display: inline; } .close-nav { display: block; margin-left: auto; color: #8c98a3; } .menu-btn { display: grid; place-items: center; } .topbar { padding: 0 17px; } .breadcrumb { flex: 1; min-width: 0; } .top-actions { margin-left: 0; } .search { width: 34px; padding: 7px; } .search input, .search kbd, .theme-toggle { display: none; } .content { padding: 27px 17px 40px; } .page-heading { align-items: flex-start; gap: 18px; } .page-heading .primary { white-space: nowrap; } .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid-2, .lower-row { grid-template-columns: 1fr; } .chart-row .panel:nth-child(2) { display: none; } .demo-banner { padding: 8px 17px; } .panel-heading { align-items: flex-start; } .table-wrap { width: 100%; } }
 @media (max-width: 760px) { .report-toolbar { grid-template-columns: 1fr; gap: 14px; align-items: stretch; } .report-presets { order: 3; justify-content: space-between; } .report-date-fields { display: grid; grid-template-columns: 1fr 1fr; } .report-date-fields input { min-width: 0; width: 100%; } .report-grid { grid-template-columns: 1fr; } .report-profit { min-height: 220px; } }
 @media (max-width: 760px) { .admin-monitor-grid { grid-template-columns: 1fr; } .admin-actions-inline { align-items: stretch; flex-direction: column; } .admin-actions-inline .secondary { justify-content: center; } }
+@media (max-width: 760px) { .monitoring-summary, .monitoring-chart-grid { grid-template-columns: 1fr; } .monitoring-chart-grid { margin-inline: 13px; } .availability-row { grid-template-columns: 94px 1fr auto; } }
 @media (max-width: 460px) { h1 { font-size: 24px; } .metrics { gap: 8px; } .metric { padding: 13px; } .metric strong { font-size: 21px; } .metric-top { display: block; } .metric-change { margin-top: 5px; } .page-heading { display: block; } .page-heading .primary { margin-top: 16px; } .panel { padding: 15px; } .panel-toolbar { padding: 10px 13px; overflow-x: auto; } .tabs { gap: 15px; } .full-panel .table-wrap { padding: 0 13px 8px; } }
  .offline-status {
   position: fixed;
