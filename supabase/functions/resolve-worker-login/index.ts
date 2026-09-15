@@ -22,15 +22,30 @@ serve(async (request) => {
   const password = body.password
   if (!identifier || !password) return json({ error: 'Worker identifier and password are required' }, 400)
   const adminClient = createClient(url, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } })
-  const field = identifier.includes('@') ? 'email' : 'employee_id'
-  const lookupValue = identifier.replace(/[\\%_]/g, '\\$&')
-  const { data: employees, error } = await adminClient
+  const isEmail = identifier.includes('@')
+  const separator = identifier.indexOf(':')
+  const workspaceSlug = !isEmail && separator > 0 ? identifier.slice(0, separator).trim().toLowerCase() : null
+  const employeeIdentifier = workspaceSlug ? identifier.slice(separator + 1).trim() : identifier
+  let organizationId: string | null = null
+  if (workspaceSlug) {
+    const { data: organization } = await adminClient
+      .from('organizations')
+      .select('id')
+      .eq('slug', workspaceSlug)
+      .maybeSingle()
+    if (!organization) return json({ error: 'Invalid worker credentials' }, 401)
+    organizationId = organization.id
+  }
+  let employeeQuery = adminClient
     .from('employee_profiles')
     .select('email,employment_status,user_id,organization_id,branch_id')
-    .ilike(field, lookupValue)
     .eq('employment_status', 'active')
     .not('user_id', 'is', null)
-    .limit(2)
+  employeeQuery = isEmail
+    ? employeeQuery.ilike('email', employeeIdentifier.replace(/[\\%_]/g, '\\$&'))
+    : employeeQuery.eq('employee_id', employeeIdentifier)
+  if (organizationId) employeeQuery = employeeQuery.eq('organization_id', organizationId)
+  const { data: employees, error } = await employeeQuery.limit(2)
   // Deliberately return the same response for missing and ambiguous identities.
   // This prevents employee enumeration and makes per-organization ID collisions
   // harmless until an administrator resolves them.
