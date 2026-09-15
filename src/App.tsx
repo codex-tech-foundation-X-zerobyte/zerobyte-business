@@ -558,7 +558,16 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
         measure('Realtime', 'Supabase Realtime', realtime),
         measure('Edge Functions', 'Supabase', () => token ? fetchProbe(`${supabaseUrl}/functions/v1/get-platform-records?resource=Notifications`, adminAuthHeaders(token, anonKey)) : Promise.resolve({ status: 'failed' as const, detail: 'No active admin session' })),
         measure('Frontend', 'Current browser', () => fetchProbe(window.location.href)),
-        measure('GitHub', 'GitHub API', async () => { const repository = import.meta.env.VITE_GITHUB_REPOSITORY; return repository ? fetchProbe(`https://api.github.com/repos/${repository}`, { Accept: 'application/vnd.github+json' }) : { status: 'configuration', detail: 'Repository is not configured for browser checks' } }),
+        measure('GitHub', 'Server-side GitHub API', async () => {
+          if (!token) return { status: 'failed' as const, detail: 'No active admin session' }
+          const response = await fetchWithTimeout(`${supabaseUrl}/functions/v1/list-platform-audit?limit=1`, { headers: adminAuthHeaders(token, anonKey) })
+          const payload = await response.json().catch(() => null)
+          if (!response.ok) return { status: 'failed' as const, detail: `Audit integration returned HTTP ${response.status}` }
+          const github = payload?.github
+          if (!github?.configured) return { status: 'configuration' as const, detail: github?.detail ?? 'GITHUB_REPOSITORY is not configured on the Edge Function' }
+          if (github.status === 'failed') return { status: 'failed' as const, detail: github.detail ?? 'GitHub API request failed' }
+          return { status: 'healthy' as const, detail: github.detail ?? 'GitHub API connected; Actions and deployment status observed server-side' }
+        }),
         measure('Vercel', 'Vercel', async () => { const deploymentUrl = import.meta.env.VITE_VERCEL_PROJECT_URL; return deploymentUrl ? fetchProbe(deploymentUrl) : { status: 'configuration', detail: 'Deployment URL is not configured for browser checks' } }),
       ])
       const checkedAt = new Date().toISOString()
