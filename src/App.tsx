@@ -4,6 +4,7 @@ import {
   LogOut, Menu, Package, PanelLeftClose, PanelLeftOpen, Palette, Plus, Receipt, RefreshCw, Search, Settings, ShoppingCart, ShieldCheck, UserRound, Users, Wallet, Wifi, X,
 } from 'lucide-react'
 import { adminSupabase, isSupabaseConfigured, supabase, supabaseAnonKey, supabaseUrl } from './lib/supabase'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 import { getCurrentUserContext } from './lib/identity'
 import {
   clearOfflineUserData, discardOfflineUserData, clearSaleDraft, enqueueOfflineOperation, newOfflineOperationId, readSaleDraft,
@@ -325,6 +326,10 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
   const [monitorUpdatedAt, setMonitorUpdatedAt] = useState<string | null>(null)
   const [monitorStatusFilter, setMonitorStatusFilter] = useState('all')
   const [monitorRange, setMonitorRange] = useState('all')
+  const monitorRealtimeChannel = useRef<RealtimeChannel | null>(null)
+  const monitorRealtimeStatus = useRef<string | null>(null)
+  const monitorRealtimeWait = useRef<Promise<{ status: MonitorMetric['status']; detail: string }> | null>(null)
+  const monitorRunInProgress = useRef(false)
   useEffect(() => {
     if (!adminSupabase) return
     adminSupabase.rpc('get_platform_overview').then(({ data, error }) => {
@@ -451,9 +456,10 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
     return () => { cancelled = true }
   }, [section])
   const runMonitoringChecks = useCallback(async () => {
-    if (!adminSupabase || !supabaseUrl || !supabaseAnonKey) return
+    if (!adminSupabase || !supabaseUrl || !supabaseAnonKey || monitorRunInProgress.current) return
     const client = adminSupabase
     const anonKey = supabaseAnonKey
+    monitorRunInProgress.current = true
     setMonitorLoading(true); setMonitorError('')
     const measure = async (name: string, source: string, operation: () => Promise<{ status: MonitorMetric['status']; detail: string }>): Promise<MonitorMetric> => {
       const started = performance.now()
@@ -470,37 +476,74 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
       const response = await fetchWithTimeout(url, { headers })
       return response.ok ? { status: 'healthy' as const, detail: `HTTP ${response.status}` } : { status: 'failed' as const, detail: `HTTP ${response.status} ${response.statusText}` }
     }
-    const session = (await withTimeout(client.auth.getSession())).data.session
-    const token = session?.access_token ?? anonKey
-    const metrics = await Promise.all([
-      measure('API', 'Supabase', () => fetchProbe(`${supabaseUrl}/rest/v1/`, adminAuthHeaders(token, anonKey))),
-      measure('Database', 'Supabase', async () => { const { error } = await withTimeout(client.rpc('get_platform_overview')); return error ? { status: 'failed', detail: error.message } : { status: 'healthy', detail: 'Overview RPC completed' } }),
-      measure('Auth', 'Supabase Auth', async () => session ? { status: 'healthy', detail: `Session for ${session.user.email ?? 'signed-in admin'}` } : { status: 'failed', detail: 'No active admin session' }),
-      measure('Storage', 'Supabase Storage', async () => { const { error } = await withTimeout(client.storage.listBuckets()); return error ? { status: 'failed', detail: error.message } : { status: 'healthy', detail: 'Bucket listing completed' } }),
-      measure('Realtime', 'Supabase Realtime', () => new Promise((resolve) => {
-        const channel = client.channel(`admin-health-${Date.now()}`)
-        const finish = (result: { status: MonitorMetric['status']; detail: string }) => { window.clearTimeout(timeout); void client.removeChannel(channel); resolve(result) }
-        const timeout = window.setTimeout(() => finish({ status: 'failed', detail: `Realtime timed out after ${ADMIN_REQUEST_TIMEOUT_MS / 1000}s` }), ADMIN_REQUEST_TIMEOUT_MS)
-        channel.subscribe((status) => { if (status === 'SUBSCRIBED') finish({ status: 'healthy', detail: 'Channel subscribed' }); else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') finish({ status: 'failed', detail: `Realtime ${status.toLowerCase()}` }) })
-      })),
-      measure('Edge Functions', 'Supabase', () => fetchProbe(`${supabaseUrl}/functions/v1/get-platform-records?resource=Notifications`, adminAuthHeaders(token, anonKey))),
-      measure('GitHub', 'GitHub API', async () => { const repository = import.meta.env.VITE_GITHUB_REPOSITORY; return repository ? fetchProbe(`https://api.github.com/repos/${repository}`, { Accept: 'application/vnd.github+json' }) : { status: 'configuration', detail: 'Repository is not configured for browser checks' } }),
-      measure('Vercel', 'Vercel', async () => { const deploymentUrl = import.meta.env.VITE_VERCEL_PROJECT_URL; return deploymentUrl ? fetchProbe(deploymentUrl) : { status: 'configuration', detail: 'Deployment URL is not configured for browser checks' } }),
-    ])
-    const checkedAt = new Date().toISOString()
-    setMonitorMetrics(metrics)
-    setMonitorHistory((current) => {
-      const next = [...current, ...metrics.map((metric) => ({ ...metric, checkedAt }))].slice(-240)
-      window.localStorage.setItem('zerobyte.admin-monitor-history', JSON.stringify(next))
-      return next
-    })
-    setMonitorUpdatedAt(checkedAt); setMonitorLoading(false)
+    try {
+      const session = (await withTimeout(client.auth.getSession())).data.session
+      const token = session?.access_token
+      const realtime = async () => {
+        if (monitorRealtimeStatus.current === 'SUBSCRIBED') return { status: 'healthy' as const, detail: 'Channel subscribed' }
+        if (monitorRealtimeWait.current) return monitorRealtimeWait.current
+        const channel = monitorRealtimeChannel.current ?? client.channel('admin-health')
+        monitorRealtimeChannel.current = channel
+        let settled = false
+        const waitPromise = new Promise<{ status: MonitorMetric['status']; detail: string }>((resolve) => {
+          const finish = (result: { status: MonitorMetric['status']; detail: string }) => {
+            if (settled) return
+            settled = true
+            window.clearTimeout(timeout)
+            monitorRealtimeWait.current = null
+            if (result.status !== 'healthy') {
+              monitorRealtimeStatus.current = null
+              monitorRealtimeChannel.current = null
+              void client.removeChannel(channel)
+            }
+            resolve(result)
+          }
+          const timeout = window.setTimeout(() => finish({ status: 'failed', detail: `Realtime timed out after ${ADMIN_REQUEST_TIMEOUT_MS / 1000}s` }), ADMIN_REQUEST_TIMEOUT_MS)
+          channel.subscribe((status) => {
+            monitorRealtimeStatus.current = status
+            if (status === 'SUBSCRIBED') finish({ status: 'healthy', detail: 'Channel subscribed' })
+            else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') finish({ status: 'failed', detail: `Realtime ${status.toLowerCase()}` })
+          })
+        })
+        monitorRealtimeWait.current = settled ? null : waitPromise
+        return waitPromise
+      }
+      const metrics = await Promise.all([
+        measure('API', 'Supabase', () => token ? fetchProbe(`${supabaseUrl}/rest/v1/organizations?select=id&limit=1`, adminAuthHeaders(token, anonKey)) : Promise.resolve({ status: 'failed' as const, detail: 'No active admin session' })),
+        measure('Database', 'Supabase', async () => { const { error } = await withTimeout(client.rpc('get_platform_overview')); return error ? { status: 'failed', detail: error.message } : { status: 'healthy', detail: 'Overview RPC completed' } }),
+        measure('Auth', 'Supabase Auth', async () => session ? { status: 'healthy', detail: `Session for ${session.user.email ?? 'signed-in admin'}` } : { status: 'failed', detail: 'No active admin session' }),
+        measure('Storage', 'Supabase Storage', async () => { const { error } = await withTimeout(client.storage.listBuckets()); return error ? { status: 'failed', detail: error.message } : { status: 'healthy', detail: 'Bucket listing completed' } }),
+        measure('Realtime', 'Supabase Realtime', realtime),
+        measure('Edge Functions', 'Supabase', () => token ? fetchProbe(`${supabaseUrl}/functions/v1/get-platform-records?resource=Notifications`, adminAuthHeaders(token, anonKey)) : Promise.resolve({ status: 'failed' as const, detail: 'No active admin session' })),
+        measure('GitHub', 'GitHub API', async () => { const repository = import.meta.env.VITE_GITHUB_REPOSITORY; return repository ? fetchProbe(`https://api.github.com/repos/${repository}`, { Accept: 'application/vnd.github+json' }) : { status: 'configuration', detail: 'Repository is not configured for browser checks' } }),
+        measure('Vercel', 'Vercel', async () => { const deploymentUrl = import.meta.env.VITE_VERCEL_PROJECT_URL; return deploymentUrl ? fetchProbe(deploymentUrl) : { status: 'configuration', detail: 'Deployment URL is not configured for browser checks' } }),
+      ])
+      const checkedAt = new Date().toISOString()
+      setMonitorMetrics(metrics)
+      setMonitorHistory((current) => {
+        const next = [...current, ...metrics.map((metric) => ({ ...metric, checkedAt }))].slice(-240)
+        window.localStorage.setItem('zerobyte.admin-monitor-history', JSON.stringify(next))
+        return next
+      })
+      setMonitorUpdatedAt(checkedAt)
+    } catch (reason) {
+      setMonitorError(reason instanceof Error ? reason.message : 'Monitoring checks could not be completed.')
+    } finally {
+      monitorRunInProgress.current = false
+      setMonitorLoading(false)
+    }
   }, [])
   useEffect(() => {
     if (section !== 'Monitoring') return
     void runMonitoringChecks()
     const interval = window.setInterval(() => { if (document.visibilityState === 'visible') void runMonitoringChecks() }, 30000)
-    return () => window.clearInterval(interval)
+    return () => {
+      window.clearInterval(interval)
+      if (monitorRealtimeChannel.current) void adminSupabase?.removeChannel(monitorRealtimeChannel.current)
+      monitorRealtimeChannel.current = null
+      monitorRealtimeStatus.current = null
+      monitorRealtimeWait.current = null
+    }
   }, [runMonitoringChecks, section])
   const adminSectionIcons: Record<AdminSection, typeof LayoutDashboard> = {
     Overview: LayoutDashboard,
