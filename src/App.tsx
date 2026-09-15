@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ArrowRight, BarChart3, Bell, BookOpen, Check, ChevronRight, CircleHelp, ClipboardList, FileText, Gauge, GitBranch, History, LayoutDashboard,
-  LogOut, Menu, Package, PanelLeftClose, PanelLeftOpen, Palette, Plus, Receipt, RefreshCw, Search, Settings, ShoppingCart, ShieldCheck, UserRound, Users, Wallet, Wifi, X,
+  LogOut, Menu, MessageCircle, Package, PanelLeftClose, PanelLeftOpen, Palette, Plus, Receipt, RefreshCw, Search, Send, Settings, ShoppingCart, ShieldCheck, UserRound, Users, Wallet, Wifi, X,
 } from 'lucide-react'
 import { adminSupabase, isSupabaseConfigured, supabase, supabaseAnonKey, supabaseUrl } from './lib/supabase'
 import type { RealtimeChannel } from '@supabase/supabase-js'
@@ -323,8 +323,46 @@ function AdminAccessDenied({ email, onBack }: { email: string; onBack: () => voi
   return <div className="auth-loading"><div className="auth-card"><div className="brand-mark">ø</div><h1>Access denied</h1><p>{safeEmail} is not assigned a platform admin role in this environment.</p><p>The admin URL is intentionally separate from the user application. Business ownership and worker access do not grant platform administration rights.</p><button className="primary" onClick={onBack}>Return to business app</button></div></div>
 }
 
+function AdminMessages() {
+  const [conversations, setConversations] = useState<{ id: string; organization_id: string; user_id: string; status: string; updated_at: string }[]>([])
+  const [selected, setSelected] = useState<string | null>(null); const [messages, setMessages] = useState<SupportMessage[]>([]); const [draft, setDraft] = useState(''); const [error, setError] = useState(''); const [loading, setLoading] = useState(true); const [sending, setSending] = useState(false)
+  const load = useCallback(async () => {
+    if (!adminSupabase) { setError('Admin service is not configured.'); setLoading(false); return }
+    const result = await adminSupabase.from('support_conversations').select('id,organization_id,user_id,status,updated_at').order('updated_at', { ascending: false })
+    if (result.error) setError(result.error.message.includes('does not exist') ? 'Support messaging is not configured yet. Apply the support migration first.' : result.error.message)
+    else { setConversations((result.data ?? []) as typeof conversations); setSelected((current) => current ?? (result.data?.[0]?.id || null)) }
+    setLoading(false)
+  }, [])
+  const loadMessages = useCallback(async (id: string) => {
+    if (!adminSupabase) return
+    const result = await adminSupabase.from('support_messages').select('id,conversation_id,sender_id,sender_role,body,created_at').eq('conversation_id', id).order('created_at', { ascending: true })
+    if (result.error) setError(result.error.message); else setMessages((result.data ?? []) as SupportMessage[])
+  }, [])
+  useEffect(() => { void load() }, [load])
+  useEffect(() => { if (selected) void loadMessages(selected) }, [loadMessages, selected])
+  useEffect(() => {
+    if (!adminSupabase) return
+    const channel = adminSupabase.channel('support-admin-live').on('postgres_changes', { event: '*', schema: 'public', table: 'support_conversations' }, () => void load()).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages' }, (payload) => {
+      const message = payload.new as SupportMessage
+      if (message.conversation_id === selected) setMessages((current) => current.some((item) => item.id === message.id) ? current : [...current, message])
+      void load()
+    }).subscribe()
+    return () => { void adminSupabase?.removeChannel(channel) }
+  }, [load, selected])
+  async function reply(event: React.FormEvent) {
+    event.preventDefault(); const body = draft.trim()
+    if (!adminSupabase || !selected || !body || sending) return
+    setSending(true); setError('')
+    const result = await adminSupabase.from('support_messages').insert({ conversation_id: selected, sender_id: (await adminSupabase.auth.getUser()).data.user?.id, sender_role: 'admin', body }).select('id,conversation_id,sender_id,sender_role,body,created_at').single()
+    if (result.error) setError(result.error.message); else { setMessages((current) => [...current, result.data as SupportMessage]); setDraft('') }
+    setSending(false)
+  }
+  const current = conversations.find((item) => item.id === selected)
+  return <section className="admin-card wide messages-page"><div className="admin-card-header"><div><h2>Customer messages</h2><p>Reply to workspace conversations. Access is limited by platform-admin RLS.</p></div><span className="admin-pill success">{loading ? 'Loading' : `${conversations.length} conversations`}</span></div>{error && <div className="form-error" role="alert">{error}</div>}<div className="messages-layout"><aside className="conversation-list">{conversations.length ? conversations.map((conversation) => <button className={`conversation-row${conversation.id === selected ? ' active' : ''}`} key={conversation.id} onClick={() => setSelected(conversation.id)}><strong>{conversation.status === 'open' ? 'Open conversation' : 'Closed conversation'}</strong><small>{conversation.organization_id.slice(0, 8)} · user {conversation.user_id.slice(0, 8)}</small><time>{new Date(conversation.updated_at).toLocaleString('en-NG')}</time><span className={`admin-status ${conversation.status === 'open' ? 'active' : ''}`}>{conversation.status}</span></button>) : <p className="admin-empty">No support conversations yet.</p>}</aside><div className="admin-message-thread">{current ? <><div className="thread-meta"><strong>Organization {current.organization_id.slice(0, 8)}</strong><span>User {current.user_id.slice(0, 8)} · {current.status}</span></div><div className="support-messages">{messages.length ? messages.map((message) => <div className={`support-bubble ${message.sender_role}`} key={message.id}><p>{message.body}</p><time>{message.sender_role === 'admin' ? 'You · ' : 'Customer · '}{new Date(message.created_at).toLocaleString('en-NG')}</time></div>) : <p className="support-state">No messages in this conversation.</p>}</div><form className="support-compose" onSubmit={reply}><input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Reply to customer…" aria-label="Reply to customer" disabled={sending} /><button className="primary" disabled={!draft.trim() || sending}>{sending ? 'Sending…' : <Send size={15} />}</button></form></> : <p className="support-state">Select a conversation to reply.</p>}</div></div></section>
+}
+
 function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () => void; onLogout: () => void }) {
-  type AdminSection = 'Overview' | 'Users' | 'Organizations' | 'Branches' | 'Inventory' | 'Sales' | 'Notifications' | 'Audit log' | 'Monitoring' | 'Settings'
+  type AdminSection = 'Overview' | 'Users' | 'Organizations' | 'Branches' | 'Inventory' | 'Sales' | 'Notifications' | 'Messages' | 'Audit log' | 'Monitoring' | 'Settings'
   type AdminRow = Record<string, string | number | null>
   type AuditEntry = { source: string; id: string; action: string; actor: string | null; target: string; organizationId: string | null; metadata: Record<string, unknown>; createdAt: string; category: string; severity: 'info' | 'warning' | 'critical' }
   type MonitorMetric = { name: string; source: string; latency: number | null; status: 'healthy' | 'failed' | 'unavailable' | 'configuration'; detail: string; checkedAt: string; failure?: string; httpStatus?: number | null }
@@ -441,7 +479,7 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
     })
   }, [analyticsPeriod])
   useEffect(() => {
-    if (!adminSupabase || section === 'Overview' || section === 'Settings' || section === 'Users' || section === 'Audit log' || section === 'Monitoring') return
+    if (!adminSupabase || section === 'Overview' || section === 'Settings' || section === 'Users' || section === 'Messages' || section === 'Audit log' || section === 'Monitoring') return
     setRowsLoading(true)
     setRowsError('')
     const loadRows = async () => {
@@ -679,6 +717,7 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
     Inventory: Package,
     Sales: ShoppingCart,
     Notifications: Bell,
+    Messages: MessageCircle,
     'Audit log': History,
     Monitoring: Gauge,
     Settings,
@@ -686,7 +725,7 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
   const adminSectionGroups: { label: string; items: AdminSection[] }[] = [
     { label: 'Control room', items: ['Overview', 'Users', 'Organizations'] },
     { label: 'Operations', items: ['Branches', 'Inventory', 'Sales'] },
-    { label: 'Governance', items: ['Notifications', 'Audit log', 'Monitoring', 'Settings'] },
+    { label: 'Governance', items: ['Notifications', 'Messages', 'Audit log', 'Monitoring', 'Settings'] },
   ]
   const stats = [
     { label: 'Registered users', key: 'users', detail: 'Accounts registered in Supabase Auth.' },
@@ -774,6 +813,7 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
       const normalizeAction = (action: string) => action.replace(/[._-]+/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
       return <section className="admin-card wide"><div className="admin-card-header"><div><h2>Security &amp; audit center</h2><p>Normalized, organization-aware activity from platform controls, business records, and configured integrations.</p></div><div className="admin-actions-inline"><span className="admin-pill success">{auditLoading ? 'Loading activity' : `${filteredAudit.length} of ${auditEntries.length} events`}</span><span className="admin-live-indicator">{auditLive ? 'Live updates on' : 'Polling every 20s'}</span><button className="secondary" onClick={() => setAuditRefreshToken((value) => value + 1)} disabled={auditLoading}><RefreshCw size={14} className={auditLoading ? 'spin' : ''} />Refresh</button></div></div><div className="audit-filters"><label>Category<select value={auditCategory} onChange={(event) => setAuditCategory(event.target.value)}><option value="all">All categories</option>{Array.from(new Set(auditEntries.map((entry) => entry.category))).map((value) => <option key={value}>{value}</option>)}</select></label><label>Severity<select value={auditSeverity} onChange={(event) => setAuditSeverity(event.target.value)}><option value="all">All severities</option><option value="info">Info</option><option value="warning">Warning</option><option value="critical">Critical</option></select></label><label>Source<select value={auditSource} onChange={(event) => setAuditSource(event.target.value)}><option value="all">All sources</option>{Array.from(new Set(auditEntries.map((entry) => entry.source))).map((value) => <option key={value}>{value}</option>)}</select></label><label>From<input type="date" value={auditFrom} onChange={(event) => setAuditFrom(event.target.value)} /></label><label>To<input type="date" value={auditTo} onChange={(event) => setAuditTo(event.target.value)} /></label></div>{auditError ? <div className="form-error" role="alert">{auditError}. Deploy list-platform-audit and refresh.</div> : auditLoading ? <div className="admin-table-skeleton">{[1, 2, 3, 4, 5].map((item) => <div key={item} className="admin-skeleton-row"><Skeleton /><Skeleton /><Skeleton /><Skeleton /></div>)}</div> : !filteredAudit.length ? <div className="admin-empty">No audit activity matches these filters.</div> : <div className="audit-timeline">{filteredAudit.map((entry) => <article className="audit-event" key={`${entry.source}-${entry.id}`}><div className="audit-event-marker"><History size={15} /></div><div className="audit-event-body"><div className="audit-event-meta"><span className={`audit-source ${entry.source.toLowerCase().replace(/\s+/g, '-')}`}>{entry.source}</span><span className={`audit-severity ${entry.severity}`}>{entry.severity}</span><time>{formatAdminValue('created_at', entry.createdAt)}</time></div><h3>{normalizeAction(entry.action)}</h3><p>{entry.category} · {entry.target}{entry.organizationId ? ` · ${entry.organizationId}` : ''}</p><small>{entry.actor ?? 'System'}</small>{Object.keys(entry.metadata ?? {}).length > 0 && <details className="audit-details"><summary>Event details</summary><pre>{JSON.stringify(entry.metadata, null, 2)}</pre></details>}</div></article>)}</div>}</section>
     }
+    if (section === 'Messages') return <AdminMessages />
     if (section === 'Notifications') return <><section className="admin-card wide"><div className="admin-card-header"><div><h2>Send broadcast</h2><p>Broadcasts are authorized, fanned out to user notification centers, and audited by the database.</p></div></div>    <form className="admin-form" onSubmit={sendNotification}><label>Title<input required value={notificationTitle} onChange={(event) => setNotificationTitle(event.target.value)} placeholder="Scheduled maintenance" /></label><label>Message<textarea required value={notificationMessage} onChange={(event) => setNotificationMessage(event.target.value)} placeholder="Write the message users should receive." /></label><button className="primary" type="submit" disabled={notificationBusy}>{notificationBusy ? 'Sending…' : 'Send broadcast'}</button>{notificationStatus && <p className="muted" role="status">{notificationStatus}</p>}    </form></section><section className="admin-card wide"><div className="admin-card-header"><div><h2>Publish a version</h2><p>Version announcements use the same trusted database fan-out as broadcasts.</p></div></div><form className="admin-form" onSubmit={publishVersion}><label>Version<input required value={version} onChange={(event) => setVersion(event.target.value)} placeholder="1.1.0" /></label><label>Message<textarea required value={versionMessage} onChange={(event) => setVersionMessage(event.target.value)} placeholder="What changed in this release?" /></label>    <button className="primary" type="submit" disabled={notificationBusy}>{notificationBusy ? 'Publishing…' : 'Publish announcement'}</button></form><div className="admin-version-history">{versionHistory.length ? versionHistory.map((item) => <article className="admin-version-entry" key={item.id}><div><strong>v{item.version}</strong><time>{new Date(item.created_at).toLocaleString('en-NG')}</time></div><p>{item.message}</p></article>) : <p className="admin-empty">No version announcements yet.</p>}</div></section><section className="admin-card wide"><div className="admin-card-header"><div><h2>Notification history</h2><p>Broadcasts recorded in the platform audit trail.</p></div></div>{renderRows()}</section></>
     return <section className="admin-card wide"><div className="admin-card-header"><div><h2>{section}</h2><p>Live records from the shared Supabase backend.</p></div><button className="secondary" onClick={() => setSection('Overview')}>Back to overview</button></div>{renderRows()}</section>
   }
@@ -933,6 +973,47 @@ function NotificationCenter({ userId, orgId }: { userId: string; orgId: string }
   return <div className="notification-center" ref={containerRef}><button className="icon-btn notification" onClick={() => setOpen((value) => !value)} aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} aria-expanded={open}><Bell size={19} />{unread > 0 && <b>{unread > 9 ? '9+' : unread}</b>}</button>{open && <><button className="notification-backdrop" aria-label="Close notifications" onClick={() => setOpen(false)} /><section className="notification-popover" role="dialog" aria-label="Notifications"><div className="notification-header"><div><strong>Notifications</strong><span>{unread ? `${unread} unread` : 'All caught up'}</span></div><button className="text-btn" onClick={() => void markAllRead()} disabled={!unread}>Mark all read</button></div>{error && <p className="notification-error">{error}</p>}{!navigator.onLine ? <p className="notification-empty">You’re offline. Reconnect to check for new notifications.</p> : !rows.length ? <p className="notification-empty">No notifications yet.</p> : <div className="notification-list">{rows.map((row) => <button className={`notification-item${row.read_at ? '' : ' unread'}`} key={row.id} onClick={() => void markRead(row.id)}><span className="notification-dot" /><span><strong>{row.title}</strong><small>{row.body}</small><time>{new Date(row.created_at).toLocaleString('en-NG')}</time></span></button>)}</div>}</section></>}</div>
 }
 
+type SupportMessage = { id: string; conversation_id: string; sender_id: string; sender_role: 'customer' | 'admin'; body: string; created_at: string }
+
+function SupportChat({ userId, orgId }: { userId: string; orgId: string }) {
+  const [open, setOpen] = useState(false); const [conversationId, setConversationId] = useState<string | null>(null)
+  const [messages, setMessages] = useState<SupportMessage[]>([]); const [draft, setDraft] = useState(''); const [loading, setLoading] = useState(false); const [sending, setSending] = useState(false); const [error, setError] = useState('')
+  const load = useCallback(async () => {
+    if (!supabase) { setError('Support chat is not configured yet.'); return }
+    setLoading(true); setError('')
+    const found = await supabase.from('support_conversations').select('id').eq('organization_id', orgId).eq('user_id', userId).eq('status', 'open').maybeSingle()
+    if (found.error) { setError(found.error.message.includes('does not exist') ? 'Support chat is not configured yet. Apply the support migration first.' : found.error.message); setLoading(false); return }
+    let id = found.data?.id as string | undefined
+    if (!id) {
+      const created = await supabase.from('support_conversations').insert({ organization_id: orgId, user_id: userId }).select('id').single()
+      if (created.error) { setError(created.error.message); setLoading(false); return }
+      id = created.data.id
+    }
+    if (!id) { setError('Could not create a support conversation.'); setLoading(false); return }
+    setConversationId(id)
+    const result = await supabase.from('support_messages').select('id,conversation_id,sender_id,sender_role,body,created_at').eq('conversation_id', id).order('created_at', { ascending: true })
+    if (result.error) setError(result.error.message); else setMessages((result.data ?? []) as SupportMessage[])
+    setLoading(false)
+  }, [orgId, userId])
+  useEffect(() => {
+    if (!open || !supabase || !conversationId) return
+    const channel = supabase.channel(`support-user-${conversationId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages', filter: `conversation_id=eq.${conversationId}` }, (payload) => {
+      const message = payload.new as SupportMessage
+      setMessages((current) => current.some((item) => item.id === message.id) ? current : [...current, message])
+    }).subscribe()
+    return () => { void supabase?.removeChannel(channel) }
+  }, [conversationId, open])
+  async function sendMessage(event: React.FormEvent) {
+    event.preventDefault(); const body = draft.trim()
+    if (!supabase || !conversationId || !body || sending) return
+    setSending(true); setError('')
+    const result = await supabase.from('support_messages').insert({ conversation_id: conversationId, sender_id: userId, sender_role: 'customer', body }).select('id,conversation_id,sender_id,sender_role,body,created_at').single()
+    if (result.error) setError(result.error.message); else { setMessages((current) => [...current, result.data as SupportMessage]); setDraft('') }
+    setSending(false)
+  }
+  return <div className="support-chat"><button className="support-launcher" onClick={() => { setOpen((value) => !value); if (!open) void load() }} aria-expanded={open}><MessageCircle size={19} /><span>Support</span></button>{open && <section className="support-popover" aria-label="Customer support chat"><header><div><strong>Customer support</strong><small>We’ll reply in this workspace</small></div><button className="icon-btn" onClick={() => setOpen(false)} aria-label="Close support chat"><X size={17} /></button></header><div className="support-messages">{loading ? <p className="support-state">Loading conversation…</p> : error && !messages.length ? <p className="support-state support-error">{error}</p> : !messages.length ? <p className="support-state">Tell us what you need help with.</p> : messages.map((message) => <div className={`support-bubble ${message.sender_role}`} key={message.id}><p>{message.body}</p><time>{new Date(message.created_at).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })}</time></div>)}</div>{error && messages.length > 0 && <p className="support-inline-error">{error}</p>}<form className="support-compose" onSubmit={sendMessage}><input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Write a message…" aria-label="Support message" disabled={loading || sending || !conversationId} /><button className="primary" disabled={!draft.trim() || sending || loading || !conversationId} aria-label="Send support message">{sending ? 'Sending…' : <Send size={15} />}</button></form></section>}</div>
+}
+
 function Workspace({ email, displayName }: { email: string; displayName: string }) {
   const [view, setView] = useState<View>('Overview'); const [open, setOpen] = useState(false); const [collapsed, setCollapsed] = useState(() => window.localStorage.getItem('zerobyte.sidebar-collapsed') === 'true'); const [dark, setDark] = useState(() => window.localStorage.getItem('zerobyte.theme') !== 'light'); const [search, setSearch] = useState(''); const [orgId, setOrgId] = useState<string | null>(null); const [orgName, setOrgName] = useState(''); const [userId, setUserId] = useState<string | null>(null); const [organizations, setOrganizations] = useState<OrganizationRow[]>([]); const [role, setRole] = useState('member'); const [loading, setLoading] = useState(true); const [identityError, setIdentityError] = useState(''); const [mustChangePassword, setMustChangePassword] = useState(false)
   useEffect(() => {
@@ -985,7 +1066,7 @@ function Workspace({ email, displayName }: { email: string; displayName: string 
     await supabase?.auth.signOut()
   }
   const changeTheme = (nextDark: boolean) => { setDark(nextDark); window.localStorage.setItem('zerobyte.theme', nextDark ? 'dark' : 'light') }
-  return <div className={`${dark ? 'app' : 'app light'}${collapsed ? ' sidebar-collapsed' : ''}`}><OfflineStatus scope={offlineScope} /><aside className={open ? 'sidebar open' : 'sidebar'}><div className="brand"><div className="brand-mark">ø</div><span>Zerøbyte</span><small>{workerMode ? 'Worker' : 'Business'}</small><button className="close-nav" onClick={() => setOpen(false)} aria-label="Close menu"><X size={18} /></button></div><div className="workspace-select"><div className="workspace-icon">{orgName.slice(0, 2).toUpperCase()}</div><select className="workspace-switcher" aria-label="Select organization" value={orgId} onChange={(event) => switchOrganization(event.target.value)}>{organizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.name}</option>)}</select></div>{workerMode && <div className="role-badge"><ShieldCheck size={13} /><span>Staff workspace</span></div>}<nav>{visibleGroups.map((group) => <div className="nav-group" key={group.label}><p>{group.label}</p>{group.items.map(({ name, icon: Icon }) => <button className={view === name ? 'nav-item active' : 'nav-item'} key={name} onClick={() => { setView(name as View); setOpen(false) }}><Icon size={17} /><span>{name}</span></button>)}</div>)}</nav>{!workerMode && <div className="sidebar-bottom"><button className={view === 'Settings' ? 'nav-item active' : 'nav-item'} onClick={() => setView('Settings')}><Settings size={17} /><span>Settings</span></button></div>}<button className="user" onClick={() => void signOut()}><div className="avatar">{(displayName || email).slice(0, 2).toUpperCase()}</div><div><strong>{displayName || email}</strong><span>{displayName ? email : 'Sign out'}</span></div></button><button className="sidebar-collapse" onClick={toggleSidebar} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>{collapsed ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}<span>{collapsed ? 'Expand menu' : 'Collapse menu'}</span></button></aside><main className="main"><header className="topbar"><button className="menu-btn" onClick={() => setOpen(true)} aria-label="Open menu"><Menu size={21} /></button><div className="breadcrumb"><span>{orgName}</span><ChevronRight size={14} /><strong>{view}</strong></div><div className="top-actions"><div className="search"><Search size={16} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search your business..." /></div><button className="icon-btn" aria-label="Help"><CircleHelp size={19} /></button>      <NotificationCenter userId={userId!} orgId={orgId!} /><button className="theme-toggle" onClick={() => changeTheme(!dark)}>{dark ? 'Light' : 'Dark'} mode</button></div></header><div className="content">{view === 'Overview' ? <Dashboard orgId={orgId} scope={offlineScope} onNavigate={setView} workerMode={workerMode} displayName={displayName} /> : <FeatureView view={view} orgId={orgId} search={search} scope={offlineScope} themeDark={dark} onThemeChange={changeTheme} />}</div></main></div>
+  return <div className={`${dark ? 'app' : 'app light'}${collapsed ? ' sidebar-collapsed' : ''}`}><OfflineStatus scope={offlineScope} /><aside className={open ? 'sidebar open' : 'sidebar'}><div className="brand"><div className="brand-mark">ø</div><span>Zerøbyte</span><small>{workerMode ? 'Worker' : 'Business'}</small><button className="close-nav" onClick={() => setOpen(false)} aria-label="Close menu"><X size={18} /></button></div><div className="workspace-select"><div className="workspace-icon">{orgName.slice(0, 2).toUpperCase()}</div><select className="workspace-switcher" aria-label="Select organization" value={orgId} onChange={(event) => switchOrganization(event.target.value)}>{organizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.name}</option>)}</select></div>{workerMode && <div className="role-badge"><ShieldCheck size={13} /><span>Staff workspace</span></div>}<nav>{visibleGroups.map((group) => <div className="nav-group" key={group.label}><p>{group.label}</p>{group.items.map(({ name, icon: Icon }) => <button className={view === name ? 'nav-item active' : 'nav-item'} key={name} onClick={() => { setView(name as View); setOpen(false) }}><Icon size={17} /><span>{name}</span></button>)}</div>)}</nav>{!workerMode && <div className="sidebar-bottom"><button className={view === 'Settings' ? 'nav-item active' : 'nav-item'} onClick={() => setView('Settings')}><Settings size={17} /><span>Settings</span></button></div>}<button className="user" onClick={() => void signOut()}><div className="avatar">{(displayName || email).slice(0, 2).toUpperCase()}</div><div><strong>{displayName || email}</strong><span>{displayName ? email : 'Sign out'}</span></div></button><button className="sidebar-collapse" onClick={toggleSidebar} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>{collapsed ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}<span>{collapsed ? 'Expand menu' : 'Collapse menu'}</span></button></aside><main className="main"><header className="topbar"><button className="menu-btn" onClick={() => setOpen(true)} aria-label="Open menu"><Menu size={21} /></button><div className="breadcrumb"><span>{orgName}</span><ChevronRight size={14} /><strong>{view}</strong></div><div className="top-actions"><div className="search"><Search size={16} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search your business..." /></div><button className="icon-btn" aria-label="Help"><CircleHelp size={19} /></button>      <NotificationCenter userId={userId!} orgId={orgId!} /><button className="theme-toggle" onClick={() => changeTheme(!dark)}>{dark ? 'Light' : 'Dark'} mode</button></div></header><div className="content">{view === 'Overview' ? <Dashboard orgId={orgId} scope={offlineScope} onNavigate={setView} workerMode={workerMode} displayName={displayName} /> : <FeatureView view={view} orgId={orgId} search={search} scope={offlineScope} themeDark={dark} onThemeChange={changeTheme} />}</div></main><SupportChat userId={userId!} orgId={orgId!} /></div>
 }
 
 function OrganizationPicker({ organizations, onSelect }: { organizations: OrganizationRow[]; onSelect: (id: string) => void }) {
