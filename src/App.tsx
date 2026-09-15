@@ -48,11 +48,16 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
 
 async function getAdminAccessToken() {
   if (!adminSupabase) return null
-  const current = await adminSupabase.auth.getSession()
+  let current
+  try {
+    current = await adminSupabase.auth.getSession()
+  } catch {
+    return null
+  }
   let session = current.data.session
   if (current.error || !session) return null
   if (session.expires_at && session.expires_at * 1000 <= Date.now() + 30_000) {
-    const refreshed = await adminSupabase.auth.refreshSession()
+    const refreshed = await adminSupabase.auth.refreshSession().catch(() => ({ data: { session: null }, error: new Error('Session refresh failed') }))
     if (refreshed.error || !refreshed.data.session) return null
     session = refreshed.data.session
   }
@@ -60,7 +65,7 @@ async function getAdminAccessToken() {
 }
 
 async function fetchAdminFunction(path: string, init: RequestInit = {}) {
-  if (!adminSupabase || !supabaseUrl || !supabaseAnonKey) return { response: null, expired: true }
+  if (!adminSupabase || !supabaseUrl || !supabaseAnonKey) return { response: null, expired: false, error: 'Admin service is not configured.' }
   const anonKey = supabaseAnonKey
   const request = async (token: string) => fetchWithTimeout(`${supabaseUrl}/functions/v1/${path}`, {
     ...init,
@@ -68,14 +73,23 @@ async function fetchAdminFunction(path: string, init: RequestInit = {}) {
   })
   const token = await getAdminAccessToken()
   if (!token) return { response: null, expired: true }
-  let response = await request(token)
+  let response: Response
+  try {
+    response = await request(token)
+  } catch (reason) {
+    return { response: null, expired: false, timedOut: reason instanceof DOMException && reason.name === 'AbortError', error: reason instanceof Error ? reason.message : 'Admin request failed.' }
+  }
   if (response.status !== 401) return { response, expired: false }
-  const refreshed = await adminSupabase.auth.refreshSession()
+  const refreshed = await adminSupabase.auth.refreshSession().catch(() => ({ data: { session: null }, error: new Error('Session refresh failed') }))
   if (refreshed.error || !refreshed.data.session) {
     await adminSupabase.auth.signOut()
     return { response, expired: true }
   }
-  response = await request(refreshed.data.session.access_token)
+  try {
+    response = await request(refreshed.data.session.access_token)
+  } catch (reason) {
+    return { response: null, expired: false, timedOut: reason instanceof DOMException && reason.name === 'AbortError', error: reason instanceof Error ? reason.message : 'Admin request failed.' }
+  }
   if (response.status === 401) {
     await adminSupabase.auth.signOut()
     return { response, expired: true }
@@ -367,6 +381,7 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
   const monitorRealtimeStatus = useRef<string | null>(null)
   const monitorRealtimeWait = useRef<Promise<{ status: MonitorMetric['status']; detail: string }> | null>(null)
   const monitorRunInProgress = useRef(false)
+  const adminSessionInvalid = useRef(false)
   const monitorStorageStateRef = useRef<'unknown' | 'available' | 'unavailable'>('unknown')
   const markMonitoringStorageUnavailable = useCallback(() => {
     if (monitorStorageStateRef.current === 'unavailable') return
@@ -430,10 +445,15 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
     setRowsLoading(true)
     setRowsError('')
     const loadRows = async () => {
+      if (adminSessionInvalid.current) {
+        setRowsLoading(false)
+        return
+      }
       const { response, expired } = await fetchAdminFunction(`get-platform-records?resource=${encodeURIComponent(section)}`)
       if (!response) {
         setRowsLoading(false)
-        setRowsError(expired ? 'Your admin session has expired. Sign in again.' : 'Admin service is not configured.')
+        if (expired) adminSessionInvalid.current = true
+        setRowsError(expired ? 'Your admin session has expired. Sign in again.' : 'The admin records service timed out or is temporarily unavailable. Try again.')
         return
       }
       const payload = await response.json().catch(() => null)
@@ -462,9 +482,15 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
     const client = adminSupabase
     let cancelled = false
     const loadAudit = async () => {
+      if (cancelled || adminSessionInvalid.current) return
       setAuditLoading(true); setAuditError('')
       const { response, expired } = await fetchAdminFunction('list-platform-audit?limit=150')
-      if (!response) { setAuditLoading(false); setAuditError(expired ? 'Your admin session has expired. Sign in again.' : 'Admin service is not configured.'); return }
+      if (!response) {
+        setAuditLoading(false)
+        if (expired) adminSessionInvalid.current = true
+        setAuditError(expired ? 'Your admin session has expired. Sign in again.' : 'The audit service timed out or is temporarily unavailable. Try again.')
+        return
+      }
       const payload = await response.json().catch(() => null)
       if (cancelled) return
       setAuditLoading(false)
@@ -478,7 +504,7 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
       setAuditEntries(normalized)
     }
     void loadAudit()
-    const refresh = () => { if (document.visibilityState === 'visible' && navigator.onLine) void loadAudit() }
+    const refresh = () => { if (!adminSessionInvalid.current && document.visibilityState === 'visible' && navigator.onLine) void loadAudit() }
     const channel = client.channel(`admin-audit-live-${Date.now()}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_audit_logs' }, refresh)
       .subscribe((status) => setAuditLive(status === 'SUBSCRIBED'))
@@ -497,11 +523,16 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
     setUserRowsError('')
     let cancelled = false
     const loadUsers = async () => {
+      if (adminSessionInvalid.current) {
+        setUserRowsLoading(false)
+        return
+      }
       const { response, expired } = await fetchAdminFunction('list-platform-users?page=1&pageSize=100')
       if (!response) {
         if (!cancelled) {
           setUserRowsLoading(false)
-          setUserRowsError(expired ? 'Your admin session has expired. Sign in again.' : 'Admin service is not configured.')
+          if (expired) adminSessionInvalid.current = true
+          setUserRowsError(expired ? 'Your admin session has expired. Sign in again.' : 'The admin user service timed out or is temporarily unavailable. Try again.')
         }
         return
       }
@@ -518,7 +549,7 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
     return () => { cancelled = true }
   }, [section])
   const runMonitoringChecks = useCallback(async () => {
-    if (!adminSupabase || !supabaseUrl || !supabaseAnonKey || monitorRunInProgress.current) return
+    if (!adminSupabase || !supabaseUrl || !supabaseAnonKey || monitorRunInProgress.current || adminSessionInvalid.current) return
     const client = adminSupabase
     const anonKey = supabaseAnonKey
     monitorRunInProgress.current = true
@@ -583,14 +614,16 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
         measure('Realtime', 'Supabase Realtime', realtime),
         measure('Edge Functions', 'Supabase', async () => {
           const result = await fetchAdminFunction('get-platform-records?resource=Notifications')
-          if (!result.response) return { status: 'failed' as const, detail: result.expired ? 'No active admin session' : 'Admin service is not configured' }
+          if (result.expired) adminSessionInvalid.current = true
+          if (!result.response) return { status: 'unavailable' as const, detail: result.expired ? 'No active admin session' : 'Admin records request timed out or is unavailable' }
           return result.response.ok ? { status: 'healthy' as const, detail: `HTTP ${result.response.status}` } : { status: 'failed' as const, detail: `HTTP ${result.response.status} ${result.response.statusText}` }
         }),
         measure('Frontend', 'Current browser', () => fetchProbe(window.location.href)),
         measure('GitHub', 'Server-side GitHub API', async () => {
           if (!token) return { status: 'failed' as const, detail: 'No active admin session' }
           const result = await fetchAdminFunction('list-platform-audit?limit=1')
-          if (!result.response) return { status: 'failed' as const, detail: result.expired ? 'No active admin session' : 'Admin service is not configured' }
+          if (result.expired) adminSessionInvalid.current = true
+          if (!result.response) return { status: 'unavailable' as const, detail: result.expired ? 'No active admin session' : 'Audit request timed out or is unavailable' }
           const response = result.response
           const payload = await response.json().catch(() => null)
           if (!response.ok) return { status: 'failed' as const, detail: `Audit integration returned HTTP ${response.status}` }

@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
 }
 
 type AuditEntry = {
@@ -26,9 +27,17 @@ function githubHeaders(token: string | undefined) {
 }
 
 async function githubJson(url: string, token: string | undefined) {
-  const response = await fetch(url, { headers: githubHeaders(token) })
-  const body = await response.json().catch(() => null)
-  return { response, body }
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 4000)
+  try {
+    const response = await fetch(url, { headers: githubHeaders(token), signal: controller.signal })
+    const body = await response.json().catch(() => null)
+    return { response, body }
+  } catch {
+    return { response: null, body: null }
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
 function actor(value: { login?: string } | null | undefined) {
@@ -70,7 +79,8 @@ serve(async (request) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-  if (!authorization || !supabaseUrl || !anonKey || !serviceRoleKey) return new Response(JSON.stringify({ message: 'Server configuration is incomplete' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  if (!authorization) return new Response(JSON.stringify({ message: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  if (!supabaseUrl || !anonKey || !serviceRoleKey) return new Response(JSON.stringify({ message: 'Server configuration is incomplete' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
   const caller = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authorization } } })
   const { data: { user }, error: authError } = await caller.auth.getUser()
@@ -102,10 +112,10 @@ serve(async (request) => {
       githubJson(`${base}/pulls?state=all&sort=updated&direction=desc&per_page=${Math.min(limit, 100)}`, githubToken),
       githubJson(`${base}/deployments?per_page=${Math.min(limit, 100)}`, githubToken),
     ])
-    const failed = results.find(({ response }) => !response.ok)
+    const failed = results.find(({ response }) => !response?.ok)
     if (failed) {
       github.status = 'failed'
-      github.detail = `GitHub API returned HTTP ${failed.response.status}`
+      github.detail = failed.response ? `GitHub API returned HTTP ${failed.response.status}` : 'GitHub API did not respond before the timeout'
     } else {
       github.status = 'healthy'
       github.detail = `GitHub API connected${githubToken ? ' with server token' : ' without a token (public rate limits apply)'}`
