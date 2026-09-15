@@ -323,6 +323,7 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
   const [monitorSummary, setMonitorSummary] = useState<MonitorSummary[]>([])
   const [monitorLoading, setMonitorLoading] = useState(false)
   const [monitorError, setMonitorError] = useState('')
+  const [monitorStorageState, setMonitorStorageState] = useState<'unknown' | 'available' | 'unavailable'>('unknown')
   const [monitorUpdatedAt, setMonitorUpdatedAt] = useState<string | null>(null)
   const [monitorStatusFilter, setMonitorStatusFilter] = useState('all')
   const [monitorRange, setMonitorRange] = useState('all')
@@ -330,26 +331,42 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
   const monitorRealtimeStatus = useRef<string | null>(null)
   const monitorRealtimeWait = useRef<Promise<{ status: MonitorMetric['status']; detail: string }> | null>(null)
   const monitorRunInProgress = useRef(false)
+  const monitorStorageStateRef = useRef<'unknown' | 'available' | 'unavailable'>('unknown')
+  const markMonitoringStorageUnavailable = useCallback(() => {
+    if (monitorStorageStateRef.current === 'unavailable') return
+    monitorStorageStateRef.current = 'unavailable'
+    setMonitorStorageState('unavailable')
+    setMonitorError('Monitoring storage not configured. Local browser checks will continue, but observations will not be persisted.')
+  }, [])
   const loadPersistedMonitoring = useCallback(async (period = '7d') => {
-    if (!adminSupabase) return
+    if (!adminSupabase || monitorStorageStateRef.current === 'unavailable') return
     const { data, error } = await adminSupabase.rpc('get_platform_monitoring', { period_key: period })
     if (error) {
-      if (!error.message.includes('does not exist')) setMonitorError(error.message)
+      if (error.message.includes('does not exist') || error.code === 'PGRST202') {
+        markMonitoringStorageUnavailable()
+      } else {
+        setMonitorError(error.message)
+      }
       return
     }
+    monitorStorageStateRef.current = 'available'
+    setMonitorStorageState('available')
     setMonitorHistory((data?.measurements ?? []).map((metric: { service: string; source: string; status: MonitorMetric['status']; latency_ms: number | null; detail: string; checked_at: string; http_status?: number | null }) => ({
       name: metric.service, source: metric.source, status: metric.status, latency: metric.latency_ms, detail: metric.detail, checkedAt: metric.checked_at, httpStatus: metric.http_status,
     })))
     setMonitorSummary((data?.summary ?? []) as MonitorSummary[])
-  }, [])
+  }, [markMonitoringStorageUnavailable])
   useEffect(() => {
-    if (!adminSupabase || section !== 'Monitoring') return
-    void loadPersistedMonitoring(monitorRange === 'all' ? '7d' : monitorRange)
+    if (!adminSupabase || section !== 'Monitoring' || monitorStorageState === 'unavailable') return
+    if (monitorStorageState === 'unknown') {
+      void loadPersistedMonitoring(monitorRange === 'all' ? '7d' : monitorRange)
+      return
+    }
     const channel = adminSupabase.channel(`platform-monitoring-${Date.now()}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'platform_monitoring_measurements' }, () => void loadPersistedMonitoring(monitorRange === 'all' ? '7d' : monitorRange))
       .subscribe()
     return () => { void adminSupabase?.removeChannel(channel) }
-  }, [loadPersistedMonitoring, monitorRange, section])
+  }, [loadPersistedMonitoring, monitorRange, monitorStorageState, section])
   useEffect(() => {
     if (!adminSupabase) return
     adminSupabase.rpc('get_platform_overview').then(({ data, error }) => {
@@ -489,12 +506,17 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
         return { name, source, latency, status: result.status, detail: result.detail, checkedAt: new Date().toISOString(), failure: result.status === 'failed' ? result.detail : undefined }
       } catch (reason) {
         const detail = reason instanceof DOMException && reason.name === 'AbortError' ? `Timed out after ${ADMIN_REQUEST_TIMEOUT_MS / 1000}s` : reason instanceof Error ? reason.message : 'Request failed'
-        return { name, source, latency: Math.round(performance.now() - started), status: 'failed', detail, checkedAt: new Date().toISOString(), failure: detail }
+        return { name, source, latency: null, status: 'unavailable', detail: `Probe unavailable: ${detail}`, checkedAt: new Date().toISOString() }
       }
     }
     const fetchProbe = async (url: string, headers: Record<string, string> = {}) => {
-      const response = await fetchWithTimeout(url, { headers })
-      return response.ok ? { status: 'healthy' as const, detail: `HTTP ${response.status}` } : { status: 'failed' as const, detail: `HTTP ${response.status} ${response.statusText}` }
+      try {
+        const response = await fetchWithTimeout(url, { headers })
+        return response.ok ? { status: 'healthy' as const, detail: `HTTP ${response.status}` } : { status: 'failed' as const, detail: `HTTP ${response.status} ${response.statusText}` }
+      } catch (reason) {
+        const detail = reason instanceof DOMException && reason.name === 'AbortError' ? `Timed out after ${ADMIN_REQUEST_TIMEOUT_MS / 1000}s` : reason instanceof Error ? reason.message : 'Connection failed'
+        return { status: 'unavailable' as const, detail: `Probe unavailable: ${detail}` }
+      }
     }
     try {
       const session = (await withTimeout(client.auth.getSession())).data.session
@@ -518,11 +540,11 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
             }
             resolve(result)
           }
-          const timeout = window.setTimeout(() => finish({ status: 'failed', detail: `Realtime timed out after ${ADMIN_REQUEST_TIMEOUT_MS / 1000}s` }), ADMIN_REQUEST_TIMEOUT_MS)
+          const timeout = window.setTimeout(() => finish({ status: 'unavailable', detail: `Realtime unavailable after ${ADMIN_REQUEST_TIMEOUT_MS / 1000}s` }), ADMIN_REQUEST_TIMEOUT_MS)
           channel.subscribe((status) => {
             monitorRealtimeStatus.current = status
             if (status === 'SUBSCRIBED') finish({ status: 'healthy', detail: 'Channel subscribed' })
-            else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') finish({ status: 'failed', detail: `Realtime ${status.toLowerCase()}` })
+            else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') finish({ status: 'unavailable', detail: `Realtime unavailable (${status.toLowerCase()})` })
           })
         })
         monitorRealtimeWait.current = settled ? null : waitPromise
@@ -541,15 +563,20 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
       ])
       const checkedAt = new Date().toISOString()
       setMonitorMetrics(metrics)
-      if (client) {
+      if (client && monitorStorageStateRef.current !== 'unavailable') {
         const { error } = await client.rpc('record_platform_monitoring_measurements', {
           measurements: metrics.map((metric) => ({
             service: metric.name, source: metric.source, status: metric.status, latency_ms: metric.latency,
             detail: metric.detail, checked_at: metric.checkedAt, http_status: metric.httpStatus ?? null,
           })),
         })
-        if (error && !error.message.includes('does not exist')) setMonitorError(`Checks completed but could not be persisted: ${error.message}`)
-        else void loadPersistedMonitoring(monitorRange === 'all' ? '7d' : monitorRange)
+        if (error && (error.message.includes('does not exist') || error.code === 'PGRST202')) markMonitoringStorageUnavailable()
+        else if (error) setMonitorError(`Checks completed but could not be persisted: ${error.message}`)
+        else {
+          monitorStorageStateRef.current = 'available'
+          setMonitorStorageState('available')
+          void loadPersistedMonitoring(monitorRange === 'all' ? '7d' : monitorRange)
+        }
       }
       setMonitorUpdatedAt(checkedAt)
     } catch (reason) {
@@ -558,7 +585,7 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
       monitorRunInProgress.current = false
       setMonitorLoading(false)
     }
-  }, [loadPersistedMonitoring, monitorRange])
+  }, [loadPersistedMonitoring, markMonitoringStorageUnavailable, monitorRange])
   useEffect(() => {
     if (section !== 'Monitoring') return
     void runMonitoringChecks()
@@ -666,7 +693,7 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
       const statusTotals = monitorHistory.reduce((totals, metric) => { totals[metric.status] += 1; return totals }, { healthy: 0, failed: 0, unavailable: 0, configuration: 0 })
       const measuredCount = statusTotals.healthy + statusTotals.failed
       const availability = measuredCount ? `${Math.round(statusTotals.healthy / measuredCount * 100)}%` : 'Not enough data'
-      return <section className="admin-card wide monitoring-page"><div className="admin-card-header"><div><h2>Infrastructure &amp; system health</h2><p>Persisted probe observations from this admin browser. Uptime is calculated only from stored healthy/failed checks; it is not a provider SLA.</p></div><div className="admin-actions-inline"><span className={`admin-pill ${overall === 'Healthy' ? 'success' : ''}`}>{overall}{monitorUpdatedAt ? ` · ${new Date(monitorUpdatedAt).toLocaleTimeString('en-NG')}` : ''}</span><button className="secondary" onClick={() => void runMonitoringChecks()} disabled={monitorLoading}><RefreshCw size={14} className={monitorLoading ? 'spin' : ''} />{monitorLoading ? 'Checking…' : 'Run checks'}</button></div></div>{monitorError && <div className="form-error" role="alert">{monitorError}</div>}<div className="monitoring-filters"><label>Status<select value={monitorStatusFilter} onChange={(event) => setMonitorStatusFilter(event.target.value)}><option value="all">All states</option><option value="healthy">Healthy</option><option value="failed">Failed</option><option value="configuration">Configuration needed</option><option value="unavailable">Unavailable</option></select></label><label>Time range<select value={monitorRange} onChange={(event) => setMonitorRange(event.target.value)}><option value="all">Current check set</option><option value="24h">Last 24 hours</option><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option></select></label></div><div className="monitoring-summary"><article><span>Observed availability</span><strong>{availability}</strong><small>{measuredCount ? `${statusTotals.healthy} healthy / ${statusTotals.failed} failed` : 'No persisted checks yet'}</small></article><article><span>Persisted observations</span><strong>{monitorHistory.length}</strong><small>Across configured services</small></article><article><span>Current errors</span><strong>{statusTotals.failed}</strong><small>Failed probes in selected history</small></article></div><div className="admin-monitor-grid">{visibleMetrics.map((metric) => <article className="admin-monitor-card" key={metric.name}><div className="admin-card-label">{metric.name} <span>· {metric.source}</span></div><strong>{metric.latency == null ? 'Not measured' : `${metric.latency} ms`}</strong><span className={`admin-status ${metric.status === 'healthy' ? 'active' : metric.status === 'failed' ? 'failed' : ''}`}>{metric.status === 'healthy' ? 'Healthy response' : metric.status === 'failed' ? 'Request failed' : metric.status === 'configuration' ? 'Not configured' : 'Unavailable'}</span><small>{metric.detail}</small><time>{new Date(metric.checkedAt).toLocaleString('en-NG')}</time></article>)}</div>{monitorLoading && <div className="admin-line-skeleton"><Skeleton /><Skeleton /><Skeleton /></div>}<div className="monitoring-chart-grid"><section className="monitoring-history"><div className="admin-card-header"><div><h3>Latency history</h3><p>{historyPoints.length ? `${historyPoints.length} persisted response measurements` : 'No persisted measurements yet.'}</p></div></div>{historyPoints.length > 1 && <div className="monitor-history-chart" aria-label="Persisted response latency history">{historyPoints.map((point, index) => <i key={`${point.name}-${point.checkedAt}-${index}`} title={`${point.name}: ${point.latency} ms`} style={{ height: `${Math.max(8, Math.min(100, (point.latency ?? 0) / Math.max(...historyPoints.map((item) => item.latency ?? 0), 1) * 100))}%` }} />)}</div>}</section><section className="monitoring-availability"><div className="admin-card-header"><div><h3>Service availability</h3><p>Observed healthy vs failed checks in the selected period.</p></div></div>{monitorSummary.length ? monitorSummary.map((item) => <div className="availability-row" key={item.service}><strong>{item.service}</strong><span><i style={{ width: `${item.uptime_percent ?? 0}%` }} /></span><b>{item.uptime_percent == null ? 'No data' : `${item.uptime_percent}%`}</b><small>{item.checks} checks · {item.failed} failed</small></div>) : <p className="monitoring-empty">No persisted service history yet.</p>}</section></div><section className="monitoring-failures"><h3>Recent failures</h3>{failures.length ? failures.map((metric) => <div key={metric.name}><strong>{metric.name}</strong><span>{metric.failure}</span><time>{new Date(metric.checkedAt).toLocaleString('en-NG')}</time></div>) : <p>No failures recorded in the current browser check.</p>}</section><div className="monitoring-notes"><Wifi size={16} /><span>Observations are authenticated, bounded, and stored in Supabase. Browser checks describe this admin device and network only; missing checks are unknown, not downtime. GitHub and Vercel remain unmeasured until configured.</span></div></section>
+      return <section className="admin-card wide monitoring-page"><div className="admin-card-header"><div><h2>Infrastructure &amp; system health</h2><p>Persisted probe observations from this admin browser. Uptime is calculated only from stored healthy/failed checks; it is not a provider SLA.</p></div><div className="admin-actions-inline"><span className={`admin-pill ${overall === 'Healthy' ? 'success' : ''}`}>{overall}{monitorUpdatedAt ? ` · ${new Date(monitorUpdatedAt).toLocaleTimeString('en-NG')}` : ''}</span><button className="secondary" onClick={() => void runMonitoringChecks()} disabled={monitorLoading}><RefreshCw size={14} className={monitorLoading ? 'spin' : ''} />{monitorLoading ? 'Checking…' : 'Run checks'}</button></div></div>{monitorStorageState === 'unavailable' && <div className="monitoring-storage-state" role="status"><strong>Monitoring storage not configured</strong><span>Local and browser checks continue on this device. Results are not being persisted until the monitoring migration is deployed.</span></div>}{monitorError && monitorStorageState !== 'unavailable' && <div className="form-error" role="alert">{monitorError}</div>}<div className="monitoring-filters"><label>Status<select value={monitorStatusFilter} onChange={(event) => setMonitorStatusFilter(event.target.value)}><option value="all">All states</option><option value="healthy">Healthy</option><option value="failed">Failed</option><option value="configuration">Configuration needed</option><option value="unavailable">Unavailable</option></select></label><label>Time range<select value={monitorRange} onChange={(event) => setMonitorRange(event.target.value)}><option value="all">Current check set</option><option value="24h">Last 24 hours</option><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option></select></label></div><div className="monitoring-summary"><article><span>Observed availability</span><strong>{availability}</strong><small>{measuredCount ? `${statusTotals.healthy} healthy / ${statusTotals.failed} failed` : 'No persisted checks yet'}</small></article><article><span>Persisted observations</span><strong>{monitorHistory.length}</strong><small>Across configured services</small></article><article><span>Current errors</span><strong>{statusTotals.failed}</strong><small>Failed probes in selected history</small></article></div><div className="admin-monitor-grid">{visibleMetrics.map((metric) => <article className="admin-monitor-card" key={metric.name}><div className="admin-card-label">{metric.name} <span>· {metric.source}</span></div><strong>{metric.latency == null ? 'Not measured' : `${metric.latency} ms`}</strong><span className={`admin-status ${metric.status === 'healthy' ? 'active' : metric.status === 'failed' ? 'failed' : ''}`}>{metric.status === 'healthy' ? 'Healthy response' : metric.status === 'failed' ? 'Request failed' : metric.status === 'configuration' ? 'Not configured' : 'Unavailable'}</span><small>{metric.detail}</small><time>{new Date(metric.checkedAt).toLocaleString('en-NG')}</time></article>)}</div>{monitorLoading && <div className="admin-line-skeleton"><Skeleton /><Skeleton /><Skeleton /></div>}<div className="monitoring-chart-grid"><section className="monitoring-history"><div className="admin-card-header"><div><h3>Latency history</h3><p>{historyPoints.length ? `${historyPoints.length} persisted response measurements` : 'No persisted measurements yet.'}</p></div></div>{historyPoints.length > 1 && <div className="monitor-history-chart" aria-label="Persisted response latency history">{historyPoints.map((point, index) => <i key={`${point.name}-${point.checkedAt}-${index}`} title={`${point.name}: ${point.latency} ms`} style={{ height: `${Math.max(8, Math.min(100, (point.latency ?? 0) / Math.max(...historyPoints.map((item) => item.latency ?? 0), 1) * 100))}%` }} />)}</div>}</section><section className="monitoring-availability"><div className="admin-card-header"><div><h3>Service availability</h3><p>Observed healthy vs failed checks in the selected period.</p></div></div>{monitorSummary.length ? monitorSummary.map((item) => <div className="availability-row" key={item.service}><strong>{item.service}</strong><span><i style={{ width: `${item.uptime_percent ?? 0}%` }} /></span><b>{item.uptime_percent == null ? 'No data' : `${item.uptime_percent}%`}</b><small>{item.checks} checks · {item.failed} failed</small></div>) : <p className="monitoring-empty">No persisted service history yet.</p>}</section></div><section className="monitoring-failures"><h3>Recent failures</h3>{failures.length ? failures.map((metric) => <div key={metric.name}><strong>{metric.name}</strong><span>{metric.failure}</span><time>{new Date(metric.checkedAt).toLocaleString('en-NG')}</time></div>) : <p>No failures recorded in the current browser check.</p>}</section><div className="monitoring-notes"><Wifi size={16} /><span>{monitorStorageState === 'unavailable' ? 'Browser checks are local only. Deploy the platform monitoring migration to enable authenticated persistence and historical charts.' : 'Observations are authenticated, bounded, and stored in Supabase. Browser checks describe this admin device and network only; missing checks are unknown, not downtime. GitHub and Vercel remain unmeasured until configured.'}</span></div></section>
     }
     if (section === 'Settings') return <section className="admin-card wide"><div className="admin-card-header"><div><h2>Admin settings</h2><p>Profile and environment-safe controls for this console.</p></div></div><div className="admin-settings"><div><span className="admin-card-label">Signed-in account</span><strong>{email}</strong></div><div><span className="admin-card-label">Access model</span><strong>Platform admin role + Supabase RLS</strong></div><div><span className="admin-card-label">Revenue</span><strong>Unavailable until billing is implemented</strong></div></div></section>
     if (section === 'Audit log') {

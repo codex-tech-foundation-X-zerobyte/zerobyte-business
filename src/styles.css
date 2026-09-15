@@ -410,6 +410,8 @@ td:last-child, th:last-child { padding-right: 0; }
 .audit-severity { display: inline-flex; border-radius: 999px; padding: 4px 7px; font-size: 9px; text-transform: capitalize; }
 .audit-severity.info { background: rgba(96,165,250,.12); color: #a8d0ff; }.audit-severity.warning { background: rgba(245,158,11,.13); color: #f8cf80; }.audit-severity.critical { background: rgba(239,68,68,.14); color: #ffaaa7; }
 .monitoring-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 16px 18px 4px; }
+.monitoring-storage-state { display: grid; gap: 4px; margin: 14px 18px 0; padding: 12px 14px; border: 1px solid #80652a; border-radius: 9px; background: rgba(214, 158, 46, .09); color: #f5d58b; font-size: 11px; line-height: 1.45; }
+.monitoring-storage-state strong { color: #ffe3a3; font-size: 12px; }
 .monitoring-summary article { border: 1px solid #1c2b38; border-radius: 10px; padding: 13px; background: #0e1823; }
 .monitoring-summary span, .monitoring-summary small { display: block; color: #8ea0b2; font-size: 10px; }
 .monitoring-summary strong { display: block; margin: 8px 0 4px; font-size: 22px; letter-spacing: -.04em; }
