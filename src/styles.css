@@ -400,6 +400,10 @@ td:last-child, th:last-child { padding-right: 0; }
 .audit-source.supabase-project { background: rgba(6, 182, 212, .12); color: #8bdfed; }
 .audit-source.github { background: rgba(148, 163, 184, .14); color: #d2dce7; }
 .audit-timeline { position: relative; padding: 8px 22px 24px 42px; }.audit-timeline::before { content: ''; position: absolute; top: 8px; bottom: 24px; left: 28px; width: 1px; background: #294052; }.audit-event { position: relative; display: flex; gap: 14px; padding: 14px 0; }.audit-event-marker { position: absolute; left: -21px; width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid #31516a; border-radius: 50%; background: #111b27; color: #60a5fa; }.audit-event-body { flex: 1; min-width: 0; }.audit-event-meta { display: flex; justify-content: space-between; gap: 12px; align-items: center; }.audit-event-meta time { color: #8195a7; font-size: 10px; }.audit-event h3 { margin: 8px 0 4px; font-size: 14px; }.audit-event p { margin: 0 0 5px; color: #a6b6c5; font-size: 11px; overflow-wrap: anywhere; }.audit-event small { color: #71879b; font-size: 10px; }
+.admin-live-indicator { color: var(--green); font-size: 10px; white-space: nowrap; }
+.audit-details { margin-top: 9px; color: var(--muted); font-size: 10px; }
+.audit-details summary { cursor: pointer; color: var(--cyan); }
+.audit-details pre { max-width: 100%; overflow: auto; margin: 8px 0 0; padding: 9px; border-radius: 6px; background: color-mix(in srgb, var(--line) 35%, transparent); color: inherit; font: 10px/1.45 "SFMono-Regular", Consolas, monospace; white-space: pre-wrap; }
 .audit-filters, .monitoring-filters { display: flex; flex-wrap: wrap; gap: 10px; padding: 8px 18px 16px; border-bottom: 1px solid #1c2b38; }
 .audit-filters label, .monitoring-filters label { display: grid; gap: 5px; color: #9aa9b7; font-size: 10px; }
 .audit-filters select, .audit-filters input, .monitoring-filters select { min-width: 130px; border: 1px solid #263847; border-radius: 7px; background: #0c1620; color: #eaf3ff; padding: 8px 9px; font-size: 11px; }
@@ -650,6 +654,11 @@ td:last-child, th:last-child { padding-right: 0; }
 .admin-monitor-card small { color: var(--muted); line-height: 1.45; }
 .admin-monitor-card time { color: var(--muted); font-size: 10px; }
 .admin-monitor-card .admin-card-label span { color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; }
+.monitoring-history { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 18px; }
+.monitoring-history .admin-card-header { margin-bottom: 12px; }
+.monitoring-history h3 { margin: 0 0 4px; font-size: 13px; }
+.monitor-history-chart { height: 100px; display: flex; align-items: end; gap: 4px; padding: 8px 2px 0; border-bottom: 1px solid var(--line); }
+.monitor-history-chart i { flex: 1; min-width: 3px; max-width: 18px; background: linear-gradient(180deg, var(--cyan), var(--lime)); border-radius: 3px 3px 0 0; opacity: .85; }
 .admin-status.failed { background: rgba(239,68,68,.14); color: #ffaaa7; }
 .monitoring-failures { margin: 18px; border-top: 1px solid #1c2b38; }.monitoring-failures h3 { margin: 16px 0 8px; font-size: 13px; }.monitoring-failures p { color: var(--muted); font-size: 11px; }.monitoring-failures > div { display: grid; grid-template-columns: 150px 1fr auto; gap: 10px; padding: 10px 0; border-top: 1px solid #1c2b38; font-size: 11px; }.monitoring-failures span { color: #ffaaa7; overflow-wrap: anywhere; }.monitoring-failures time { color: var(--muted); font-size: 10px; }
 .monitoring-notes { display: flex; align-items: flex-start; gap: 9px; margin-top: 18px; padding: 12px; color: var(--muted); background: rgba(6,182,212,.05); border-radius: 9px; font-size: 11px; line-height: 1.5; }

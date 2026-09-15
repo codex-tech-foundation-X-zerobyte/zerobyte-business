@@ -29,6 +29,34 @@ function normalizeLogoUrl(value: string | null | undefined) {
   return value.replace('/storage/v1/object/business-logos/', '/storage/v1/object/public/business-logos/')
 }
 
+const ADMIN_REQUEST_TIMEOUT_MS = 5000
+
+function adminAuthHeaders(token: string, anonKey: string) {
+  return { apikey: anonKey, Authorization: `Bearer ${token}` }
+}
+
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = ADMIN_REQUEST_TIMEOUT_MS) {
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(input, { ...init, signal: controller.signal })
+  } finally {
+    window.clearTimeout(timeout)
+  }
+}
+
+async function withTimeout<T>(promise: PromiseLike<T>, timeoutMs = ADMIN_REQUEST_TIMEOUT_MS) {
+  let timeout: number | undefined
+  try {
+    return await Promise.race([
+      Promise.resolve(promise),
+      new Promise<T>((_, reject) => { timeout = window.setTimeout(() => reject(new Error('Request timed out')), timeoutMs) }),
+    ])
+  } finally {
+    if (timeout) window.clearTimeout(timeout)
+  }
+}
+
 function recordDates(range: RecordRange, from: string, to: string) {
   if (range === 'all') return { from: '', to: '' }
   if (range === 'custom') return { from, to }
@@ -278,6 +306,7 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
   const [auditFrom, setAuditFrom] = useState('')
   const [auditTo, setAuditTo] = useState('')
   const [auditRefreshToken, setAuditRefreshToken] = useState(0)
+  const [auditLive, setAuditLive] = useState(false)
   const [notificationTitle, setNotificationTitle] = useState('')
   const [notificationMessage, setNotificationMessage] = useState('')
   const [version, setVersion] = useState('')
@@ -288,6 +317,9 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.localStorage.getItem('zerobyte.admin-sidebar-collapsed') === 'true')
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [monitorMetrics, setMonitorMetrics] = useState<MonitorMetric[]>([])
+  const [monitorHistory, setMonitorHistory] = useState<MonitorMetric[]>(() => {
+    try { return JSON.parse(window.localStorage.getItem('zerobyte.admin-monitor-history') ?? '[]') as MonitorMetric[] } catch { return [] }
+  })
   const [monitorLoading, setMonitorLoading] = useState(false)
   const [monitorError, setMonitorError] = useState('')
   const [monitorUpdatedAt, setMonitorUpdatedAt] = useState<string | null>(null)
@@ -327,8 +359,8 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
         setRowsError('Your admin session has expired. Sign out and sign in again.')
         return
       }
-      const response = await fetch(`${supabaseUrl}/functions/v1/get-platform-records?resource=${encodeURIComponent(section)}`, {
-        headers: { Authorization: `Bearer ${sessionData.session.access_token}`, apikey: supabaseAnonKey },
+      const response = await fetchWithTimeout(`${supabaseUrl}/functions/v1/get-platform-records?resource=${encodeURIComponent(section)}`, {
+        headers: adminAuthHeaders(sessionData.session.access_token, supabaseAnonKey),
       })
       const payload = await response.json().catch(() => null)
       setRowsLoading(false)
@@ -361,7 +393,7 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
       const { data: sessionData } = await client.auth.getSession()
       const token = sessionData.session?.access_token
       if (!token) { setAuditLoading(false); setAuditError('Your admin session has expired. Sign in again.'); return }
-      const response = await fetch(`${supabaseUrl}/functions/v1/list-platform-audit?limit=150`, { headers: { Authorization: `Bearer ${token}`, apikey: anonKey } })
+      const response = await fetchWithTimeout(`${supabaseUrl}/functions/v1/list-platform-audit?limit=150`, { headers: adminAuthHeaders(token, anonKey) })
       const payload = await response.json().catch(() => null)
       if (cancelled) return
       setAuditLoading(false)
@@ -375,7 +407,18 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
       setAuditEntries(normalized)
     }
     void loadAudit()
-    return () => { cancelled = true }
+    const refresh = () => { if (document.visibilityState === 'visible' && navigator.onLine) void loadAudit() }
+    const channel = client.channel(`admin-audit-live-${Date.now()}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_audit_logs' }, refresh)
+      .subscribe((status) => setAuditLive(status === 'SUBSCRIBED'))
+    const poll = window.setInterval(refresh, 20000)
+    document.addEventListener('visibilitychange', refresh)
+    return () => {
+      cancelled = true
+      window.clearInterval(poll)
+      document.removeEventListener('visibilitychange', refresh)
+      void client.removeChannel(channel)
+    }
   }, [section, auditRefreshToken])
   useEffect(() => {
     if (!adminSupabase || section !== 'Users') return
@@ -392,11 +435,8 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
         }
         return
       }
-      const response = await fetch(`${supabaseUrl}/functions/v1/list-platform-users?page=1&pageSize=100`, {
-        headers: {
-          Authorization: `Bearer ${sessionData.session.access_token}`,
-          apikey: supabaseAnonKey,
-        },
+      const response = await fetchWithTimeout(`${supabaseUrl}/functions/v1/list-platform-users?page=1&pageSize=100`, {
+        headers: adminAuthHeaders(sessionData.session.access_token, supabaseAnonKey),
       })
       const payload = await response.json().catch(() => null)
       if (cancelled) return
@@ -419,33 +459,42 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
       const started = performance.now()
       try {
         const result = await operation()
-        const latency = Math.round(performance.now() - started)
+        const latency = result.status === 'configuration' || result.status === 'unavailable' ? null : Math.round(performance.now() - started)
         return { name, source, latency, status: result.status, detail: result.detail, checkedAt: new Date().toISOString(), failure: result.status === 'failed' ? result.detail : undefined }
       } catch (reason) {
-        const detail = reason instanceof Error ? reason.message : 'Request failed'
+        const detail = reason instanceof DOMException && reason.name === 'AbortError' ? `Timed out after ${ADMIN_REQUEST_TIMEOUT_MS / 1000}s` : reason instanceof Error ? reason.message : 'Request failed'
         return { name, source, latency: Math.round(performance.now() - started), status: 'failed', detail, checkedAt: new Date().toISOString(), failure: detail }
       }
     }
     const fetchProbe = async (url: string, headers: Record<string, string> = {}) => {
-      const response = await fetch(url, { headers })
+      const response = await fetchWithTimeout(url, { headers })
       return response.ok ? { status: 'healthy' as const, detail: `HTTP ${response.status}` } : { status: 'failed' as const, detail: `HTTP ${response.status} ${response.statusText}` }
     }
-    const session = (await client.auth.getSession()).data.session
+    const session = (await withTimeout(client.auth.getSession())).data.session
+    const token = session?.access_token ?? anonKey
     const metrics = await Promise.all([
-      measure('API', 'Supabase', () => fetchProbe(`${supabaseUrl}/rest/v1/`, { apikey: anonKey, Authorization: `Bearer ${session?.access_token ?? anonKey}` })),
-      measure('Database', 'Supabase', async () => { const { error } = await client.rpc('get_platform_overview'); return error ? { status: 'failed', detail: error.message } : { status: 'healthy', detail: 'Overview RPC completed' } }),
+      measure('API', 'Supabase', () => fetchProbe(`${supabaseUrl}/rest/v1/`, adminAuthHeaders(token, anonKey))),
+      measure('Database', 'Supabase', async () => { const { error } = await withTimeout(client.rpc('get_platform_overview')); return error ? { status: 'failed', detail: error.message } : { status: 'healthy', detail: 'Overview RPC completed' } }),
       measure('Auth', 'Supabase Auth', async () => session ? { status: 'healthy', detail: `Session for ${session.user.email ?? 'signed-in admin'}` } : { status: 'failed', detail: 'No active admin session' }),
-      measure('Storage', 'Supabase Storage', async () => { const { error } = await client.storage.listBuckets(); return error ? { status: 'failed', detail: error.message } : { status: 'healthy', detail: 'Bucket listing completed' } }),
+      measure('Storage', 'Supabase Storage', async () => { const { error } = await withTimeout(client.storage.listBuckets()); return error ? { status: 'failed', detail: error.message } : { status: 'healthy', detail: 'Bucket listing completed' } }),
       measure('Realtime', 'Supabase Realtime', () => new Promise((resolve) => {
         const channel = client.channel(`admin-health-${Date.now()}`)
-        const timeout = window.setTimeout(() => { void client.removeChannel(channel); resolve({ status: 'failed', detail: 'Realtime subscription timed out' }) }, 4000)
-        channel.subscribe((status) => { if (status === 'SUBSCRIBED') { window.clearTimeout(timeout); void client.removeChannel(channel); resolve({ status: 'healthy', detail: 'Channel subscribed' }) } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') { window.clearTimeout(timeout); void client.removeChannel(channel); resolve({ status: 'failed', detail: `Realtime ${status.toLowerCase()}` }) } })
+        const finish = (result: { status: MonitorMetric['status']; detail: string }) => { window.clearTimeout(timeout); void client.removeChannel(channel); resolve(result) }
+        const timeout = window.setTimeout(() => finish({ status: 'failed', detail: `Realtime timed out after ${ADMIN_REQUEST_TIMEOUT_MS / 1000}s` }), ADMIN_REQUEST_TIMEOUT_MS)
+        channel.subscribe((status) => { if (status === 'SUBSCRIBED') finish({ status: 'healthy', detail: 'Channel subscribed' }); else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') finish({ status: 'failed', detail: `Realtime ${status.toLowerCase()}` }) })
       })),
-      measure('Edge Functions', 'Supabase', () => fetchProbe(`${supabaseUrl}/functions/v1/get-platform-records?resource=Notifications`, { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey: anonKey })),
+      measure('Edge Functions', 'Supabase', () => fetchProbe(`${supabaseUrl}/functions/v1/get-platform-records?resource=Notifications`, adminAuthHeaders(token, anonKey))),
       measure('GitHub', 'GitHub API', async () => { const repository = import.meta.env.VITE_GITHUB_REPOSITORY; return repository ? fetchProbe(`https://api.github.com/repos/${repository}`, { Accept: 'application/vnd.github+json' }) : { status: 'configuration', detail: 'Repository is not configured for browser checks' } }),
       measure('Vercel', 'Vercel', async () => { const deploymentUrl = import.meta.env.VITE_VERCEL_PROJECT_URL; return deploymentUrl ? fetchProbe(deploymentUrl) : { status: 'configuration', detail: 'Deployment URL is not configured for browser checks' } }),
     ])
-    setMonitorMetrics(metrics); setMonitorUpdatedAt(new Date().toISOString()); setMonitorLoading(false)
+    const checkedAt = new Date().toISOString()
+    setMonitorMetrics(metrics)
+    setMonitorHistory((current) => {
+      const next = [...current, ...metrics.map((metric) => ({ ...metric, checkedAt }))].slice(-240)
+      window.localStorage.setItem('zerobyte.admin-monitor-history', JSON.stringify(next))
+      return next
+    })
+    setMonitorUpdatedAt(checkedAt); setMonitorLoading(false)
   }, [])
   useEffect(() => {
     if (section !== 'Monitoring') return
@@ -535,16 +584,23 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
     if (section === 'Users') return <section className="admin-card wide"><div className="admin-card-header"><div><h2>Users</h2><p>Platform accounts loaded through the protected Auth listing Edge Function.</p></div><span className="admin-pill success">Secure live view</span></div>{userRowsLoading ? <div className="admin-table-skeleton">{[1, 2, 3, 4, 5].map((item) => <div key={item} className="admin-skeleton-row"><Skeleton /><Skeleton /><Skeleton /><Skeleton /></div>)}</div> : userRowsError ? <div className="form-error" role="alert">{userRowsError}. Deploy list-platform-users and manage-platform-user, then refresh.</div> : !userRows.length ? <div className="admin-empty">No users found.</div> : <div className="table-wrap"><table className="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th>Created</th><th>Last sign in</th><th>Access</th></tr></thead><tbody>{userRows.map((row) => <tr key={String(row.id)}><td>{String(row.name ?? '—')}</td><td>{String(row.email ?? '—')}</td><td>{String(row.phone ?? '—')}</td><td><span className={`admin-status ${row.status === 'active' ? 'active' : ''}`}>{String(row.status ?? '—')}</span></td><td>{formatAdminValue('created_at', row.created_at)}</td><td>{row.last_sign_in_at ? formatAdminValue('last_sign_in_at', row.last_sign_in_at) : 'Never'}</td><td>{row.status === 'banned' ? <button className="text-btn" onClick={() => void setPlatformUserStatus(String(row.id), 'unban')}>Unban</button> : <button className="text-btn danger-text" onClick={() => void setPlatformUserStatus(String(row.id), 'ban')}>Ban</button>}</td></tr>)}</tbody></table></div>}</section>
     if (section === 'Monitoring') {
       const rangeStart = monitorRange === '24h' ? Date.now() - 86400000 : monitorRange === '7d' ? Date.now() - 604800000 : 0
-      const visibleMetrics = monitorMetrics.filter((metric) => (monitorStatusFilter === 'all' || metric.status === monitorStatusFilter) && (!rangeStart || new Date(metric.checkedAt).getTime() >= rangeStart))
+      const sourceMetrics = rangeStart ? monitorHistory.filter((metric) => new Date(metric.checkedAt).getTime() >= rangeStart).reduce<MonitorMetric[]>((latest, metric) => {
+        const index = latest.findIndex((item) => item.name === metric.name)
+        if (index === -1) latest.push(metric)
+        else if (new Date(metric.checkedAt).getTime() > new Date(latest[index].checkedAt).getTime()) latest[index] = metric
+        return latest
+      }, []) : monitorMetrics
+      const visibleMetrics = sourceMetrics.filter((metric) => monitorStatusFilter === 'all' || metric.status === monitorStatusFilter)
       const failures = monitorMetrics.filter((metric) => metric.status === 'failed')
       const overall = monitorMetrics.some((metric) => metric.status === 'failed') ? 'Action needed' : monitorMetrics.some((metric) => metric.status === 'configuration' || metric.status === 'unavailable') ? 'Partial coverage' : monitorMetrics.length ? 'Healthy' : 'Waiting for checks'
-      return <section className="admin-card wide monitoring-page"><div className="admin-card-header"><div><h2>Infrastructure &amp; system health</h2><p>Checks run from this browser against configured services. No global uptime or synthetic metrics are reported.</p></div><div className="admin-actions-inline"><span className={`admin-pill ${overall === 'Healthy' ? 'success' : ''}`}>{overall}{monitorUpdatedAt ? ` · ${new Date(monitorUpdatedAt).toLocaleTimeString('en-NG')}` : ''}</span><button className="secondary" onClick={() => void runMonitoringChecks()} disabled={monitorLoading}><RefreshCw size={14} className={monitorLoading ? 'spin' : ''} />{monitorLoading ? 'Checking…' : 'Run checks'}</button></div></div>{monitorError && <div className="form-error" role="alert">{monitorError}</div>}<div className="monitoring-filters"><label>Status<select value={monitorStatusFilter} onChange={(event) => setMonitorStatusFilter(event.target.value)}><option value="all">All states</option><option value="healthy">Healthy</option><option value="failed">Failed</option><option value="configuration">Configuration needed</option><option value="unavailable">Unavailable</option></select></label><label>Time range<select value={monitorRange} onChange={(event) => setMonitorRange(event.target.value)}><option value="all">Current check set</option><option value="24h">Last 24 hours</option><option value="7d">Last 7 days</option></select></label></div><div className="admin-monitor-grid">{visibleMetrics.map((metric) => <article className="admin-monitor-card" key={metric.name}><div className="admin-card-label">{metric.name} <span>· {metric.source}</span></div><strong>{metric.latency == null ? '—' : `${metric.latency} ms`}</strong><span className={`admin-status ${metric.status === 'healthy' ? 'active' : metric.status === 'failed' ? 'failed' : ''}`}>{metric.status === 'healthy' ? 'Healthy response' : metric.status === 'failed' ? 'Request failed' : metric.status === 'configuration' ? 'Configuration needed' : 'Unavailable'}</span><small>{metric.detail}</small><time>{new Date(metric.checkedAt).toLocaleString('en-NG')}</time></article>)}</div>{monitorLoading && <div className="admin-line-skeleton"><Skeleton /><Skeleton /><Skeleton /></div>}<section className="monitoring-failures"><h3>Recent failures</h3>{failures.length ? failures.map((metric) => <div key={metric.name}><strong>{metric.name}</strong><span>{metric.failure}</span><time>{new Date(metric.checkedAt).toLocaleString('en-NG')}</time></div>) : <p>No failures recorded in the current browser check.</p>}</section><div className="monitoring-notes"><Wifi size={16} /><span>Latency is measured only for the requests made here, from this device and network. Missing GitHub or Vercel values remain clearly marked as configuration needed.</span></div></section>
+      const historyPoints = monitorHistory.filter((metric) => metric.latency != null && (!rangeStart || new Date(metric.checkedAt).getTime() >= rangeStart)).slice(-48)
+      return <section className="admin-card wide monitoring-page"><div className="admin-card-header"><div><h2>Infrastructure &amp; system health</h2><p>Checks run from this browser against configured services. No global uptime or synthetic metrics are reported.</p></div><div className="admin-actions-inline"><span className={`admin-pill ${overall === 'Healthy' ? 'success' : ''}`}>{overall}{monitorUpdatedAt ? ` · ${new Date(monitorUpdatedAt).toLocaleTimeString('en-NG')}` : ''}</span><button className="secondary" onClick={() => void runMonitoringChecks()} disabled={monitorLoading}><RefreshCw size={14} className={monitorLoading ? 'spin' : ''} />{monitorLoading ? 'Checking…' : 'Run checks'}</button></div></div>{monitorError && <div className="form-error" role="alert">{monitorError}</div>}<div className="monitoring-filters"><label>Status<select value={monitorStatusFilter} onChange={(event) => setMonitorStatusFilter(event.target.value)}><option value="all">All states</option><option value="healthy">Healthy</option><option value="failed">Failed</option><option value="configuration">Configuration needed</option><option value="unavailable">Unavailable</option></select></label><label>Time range<select value={monitorRange} onChange={(event) => setMonitorRange(event.target.value)}><option value="all">Current check set</option><option value="24h">Last 24 hours</option><option value="7d">Last 7 days</option></select></label></div><div className="admin-monitor-grid">{visibleMetrics.map((metric) => <article className="admin-monitor-card" key={metric.name}><div className="admin-card-label">{metric.name} <span>· {metric.source}</span></div><strong>{metric.latency == null ? 'Not measured' : `${metric.latency} ms`}</strong><span className={`admin-status ${metric.status === 'healthy' ? 'active' : metric.status === 'failed' ? 'failed' : ''}`}>{metric.status === 'healthy' ? 'Healthy response' : metric.status === 'failed' ? 'Request failed' : metric.status === 'configuration' ? 'Not configured' : 'Unavailable'}</span><small>{metric.detail}</small><time>{new Date(metric.checkedAt).toLocaleString('en-NG')}</time></article>)}</div>{monitorLoading && <div className="admin-line-skeleton"><Skeleton /><Skeleton /><Skeleton /></div>}<section className="monitoring-history"><div className="admin-card-header"><div><h3>Collected response history</h3><p>{historyPoints.length ? `${historyPoints.length} measured checks · browser session data only` : 'No measured checks collected yet.'}</p></div></div>{historyPoints.length > 1 && <div className="monitor-history-chart" aria-label="Collected response latency history">{historyPoints.map((point, index) => <i key={`${point.name}-${point.checkedAt}-${index}`} title={`${point.name}: ${point.latency} ms`} style={{ height: `${Math.max(8, Math.min(100, (point.latency ?? 0) / Math.max(...historyPoints.map((item) => item.latency ?? 0), 1) * 100))}%` }} />)}</div>}</section><section className="monitoring-failures"><h3>Recent failures</h3>{failures.length ? failures.map((metric) => <div key={metric.name}><strong>{metric.name}</strong><span>{metric.failure}</span><time>{new Date(metric.checkedAt).toLocaleString('en-NG')}</time></div>) : <p>No failures recorded in the current browser check.</p>}</section><div className="monitoring-notes"><Wifi size={16} /><span>Latency is measured only for requests made here, from this device and network. Configuration states have no latency, and no uptime percentage is inferred.</span></div></section>
     }
     if (section === 'Settings') return <section className="admin-card wide"><div className="admin-card-header"><div><h2>Admin settings</h2><p>Profile and environment-safe controls for this console.</p></div></div><div className="admin-settings"><div><span className="admin-card-label">Signed-in account</span><strong>{email}</strong></div><div><span className="admin-card-label">Access model</span><strong>Platform admin role + Supabase RLS</strong></div><div><span className="admin-card-label">Revenue</span><strong>Unavailable until billing is implemented</strong></div></div></section>
     if (section === 'Audit log') {
       const filteredAudit = auditEntries.filter((entry) => (!auditCategory || auditCategory === 'all' || entry.category === auditCategory) && (!auditSeverity || auditSeverity === 'all' || entry.severity === auditSeverity) && (!auditSource || auditSource === 'all' || entry.source === auditSource) && (!auditFrom || entry.createdAt.slice(0, 10) >= auditFrom) && (!auditTo || entry.createdAt.slice(0, 10) <= auditTo))
       const normalizeAction = (action: string) => action.replace(/[._-]+/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
-      return <section className="admin-card wide"><div className="admin-card-header"><div><h2>Security &amp; audit center</h2><p>Normalized, organization-aware activity from platform controls, business records, and configured integrations.</p></div><div className="admin-actions-inline"><span className="admin-pill success">{auditLoading ? 'Loading activity' : `${filteredAudit.length} of ${auditEntries.length} events`}</span><button className="secondary" onClick={() => setAuditRefreshToken((value) => value + 1)} disabled={auditLoading}><RefreshCw size={14} className={auditLoading ? 'spin' : ''} />Refresh</button></div></div><div className="audit-filters"><label>Category<select value={auditCategory} onChange={(event) => setAuditCategory(event.target.value)}><option value="all">All categories</option>{Array.from(new Set(auditEntries.map((entry) => entry.category))).map((value) => <option key={value}>{value}</option>)}</select></label><label>Severity<select value={auditSeverity} onChange={(event) => setAuditSeverity(event.target.value)}><option value="all">All severities</option><option value="info">Info</option><option value="warning">Warning</option><option value="critical">Critical</option></select></label><label>Source<select value={auditSource} onChange={(event) => setAuditSource(event.target.value)}><option value="all">All sources</option>{Array.from(new Set(auditEntries.map((entry) => entry.source))).map((value) => <option key={value}>{value}</option>)}</select></label><label>From<input type="date" value={auditFrom} onChange={(event) => setAuditFrom(event.target.value)} /></label><label>To<input type="date" value={auditTo} onChange={(event) => setAuditTo(event.target.value)} /></label></div>{auditError ? <div className="form-error" role="alert">{auditError}. Deploy list-platform-audit and refresh.</div> : auditLoading ? <div className="admin-table-skeleton">{[1, 2, 3, 4, 5].map((item) => <div key={item} className="admin-skeleton-row"><Skeleton /><Skeleton /><Skeleton /><Skeleton /></div>)}</div> : !filteredAudit.length ? <div className="admin-empty">No audit activity matches these filters.</div> : <div className="audit-timeline">{filteredAudit.map((entry) => <article className="audit-event" key={`${entry.source}-${entry.id}`}><div className="audit-event-marker"><History size={15} /></div><div className="audit-event-body"><div className="audit-event-meta"><span className={`audit-source ${entry.source.toLowerCase().replace(/\s+/g, '-')}`}>{entry.source}</span><span className={`audit-severity ${entry.severity}`}>{entry.severity}</span><time>{formatAdminValue('created_at', entry.createdAt)}</time></div><h3>{normalizeAction(entry.action)}</h3><p>{entry.category} · {entry.target}{entry.organizationId ? ` · ${entry.organizationId}` : ''}</p><small>{entry.actor ?? 'System'}</small></div></article>)}</div>}</section>
+      return <section className="admin-card wide"><div className="admin-card-header"><div><h2>Security &amp; audit center</h2><p>Normalized, organization-aware activity from platform controls, business records, and configured integrations.</p></div><div className="admin-actions-inline"><span className="admin-pill success">{auditLoading ? 'Loading activity' : `${filteredAudit.length} of ${auditEntries.length} events`}</span><span className="admin-live-indicator">{auditLive ? 'Live updates on' : 'Polling every 20s'}</span><button className="secondary" onClick={() => setAuditRefreshToken((value) => value + 1)} disabled={auditLoading}><RefreshCw size={14} className={auditLoading ? 'spin' : ''} />Refresh</button></div></div><div className="audit-filters"><label>Category<select value={auditCategory} onChange={(event) => setAuditCategory(event.target.value)}><option value="all">All categories</option>{Array.from(new Set(auditEntries.map((entry) => entry.category))).map((value) => <option key={value}>{value}</option>)}</select></label><label>Severity<select value={auditSeverity} onChange={(event) => setAuditSeverity(event.target.value)}><option value="all">All severities</option><option value="info">Info</option><option value="warning">Warning</option><option value="critical">Critical</option></select></label><label>Source<select value={auditSource} onChange={(event) => setAuditSource(event.target.value)}><option value="all">All sources</option>{Array.from(new Set(auditEntries.map((entry) => entry.source))).map((value) => <option key={value}>{value}</option>)}</select></label><label>From<input type="date" value={auditFrom} onChange={(event) => setAuditFrom(event.target.value)} /></label><label>To<input type="date" value={auditTo} onChange={(event) => setAuditTo(event.target.value)} /></label></div>{auditError ? <div className="form-error" role="alert">{auditError}. Deploy list-platform-audit and refresh.</div> : auditLoading ? <div className="admin-table-skeleton">{[1, 2, 3, 4, 5].map((item) => <div key={item} className="admin-skeleton-row"><Skeleton /><Skeleton /><Skeleton /><Skeleton /></div>)}</div> : !filteredAudit.length ? <div className="admin-empty">No audit activity matches these filters.</div> : <div className="audit-timeline">{filteredAudit.map((entry) => <article className="audit-event" key={`${entry.source}-${entry.id}`}><div className="audit-event-marker"><History size={15} /></div><div className="audit-event-body"><div className="audit-event-meta"><span className={`audit-source ${entry.source.toLowerCase().replace(/\s+/g, '-')}`}>{entry.source}</span><span className={`audit-severity ${entry.severity}`}>{entry.severity}</span><time>{formatAdminValue('created_at', entry.createdAt)}</time></div><h3>{normalizeAction(entry.action)}</h3><p>{entry.category} · {entry.target}{entry.organizationId ? ` · ${entry.organizationId}` : ''}</p><small>{entry.actor ?? 'System'}</small>{Object.keys(entry.metadata ?? {}).length > 0 && <details className="audit-details"><summary>Event details</summary><pre>{JSON.stringify(entry.metadata, null, 2)}</pre></details>}</div></article>)}</div>}</section>
     }
     if (section === 'Notifications') return <><section className="admin-card wide"><div className="admin-card-header"><div><h2>Send broadcast</h2><p>Broadcasts are authorized, fanned out to user notification centers, and audited by the database.</p></div></div>    <form className="admin-form" onSubmit={sendNotification}><label>Title<input required value={notificationTitle} onChange={(event) => setNotificationTitle(event.target.value)} placeholder="Scheduled maintenance" /></label><label>Message<textarea required value={notificationMessage} onChange={(event) => setNotificationMessage(event.target.value)} placeholder="Write the message users should receive." /></label><button className="primary" type="submit" disabled={notificationBusy}>{notificationBusy ? 'Sending…' : 'Send broadcast'}</button>{notificationStatus && <p className="muted" role="status">{notificationStatus}</p>}    </form></section><section className="admin-card wide"><div className="admin-card-header"><div><h2>Publish a version</h2><p>Version announcements use the same trusted database fan-out as broadcasts.</p></div></div><form className="admin-form" onSubmit={publishVersion}><label>Version<input required value={version} onChange={(event) => setVersion(event.target.value)} placeholder="1.1.0" /></label><label>Message<textarea required value={versionMessage} onChange={(event) => setVersionMessage(event.target.value)} placeholder="What changed in this release?" /></label>    <button className="primary" type="submit" disabled={notificationBusy}>{notificationBusy ? 'Publishing…' : 'Publish announcement'}</button></form><div className="admin-version-history">{versionHistory.length ? versionHistory.map((item) => <article className="admin-version-entry" key={item.id}><div><strong>v{item.version}</strong><time>{new Date(item.created_at).toLocaleString('en-NG')}</time></div><p>{item.message}</p></article>) : <p className="admin-empty">No version announcements yet.</p>}</div></section><section className="admin-card wide"><div className="admin-card-header"><div><h2>Notification history</h2><p>Broadcasts recorded in the platform audit trail.</p></div></div>{renderRows()}</section></>
     return <section className="admin-card wide"><div className="admin-card-header"><div><h2>{section}</h2><p>Live records from the shared Supabase backend.</p></div><button className="secondary" onClick={() => setSection('Overview')}>Back to overview</button></div>{renderRows()}</section>
