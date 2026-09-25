@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
+<<<<<<< HEAD
   ArrowRight, Bell, ClipboardList, CreditCard, Gauge, GitBranch, History, LayoutDashboard,
+=======
+  ArrowRight, Bell, ClipboardList, Gauge, GitBranch, History, LayoutDashboard,
+>>>>>>> b04b3351326f61cfeb195000ac3fbc1689a33cd7
   LogOut, Menu, MessageCircle, Package, PanelLeftClose, PanelLeftOpen, RefreshCw, Send, Settings, ShoppingCart, Users, Wifi, X,
 } from 'lucide-react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
@@ -186,7 +190,11 @@ function AdminMessages({ onUnreadChange }: { onUnreadChange: (count: number) => 
 }
 
 function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () => void; onLogout: () => void }) {
+<<<<<<< HEAD
   type AdminSection = 'Overview' | 'Users' | 'Organizations' | 'Subscriptions' | 'Branches' | 'Inventory' | 'Sales' | 'Notifications' | 'Messages' | 'Audit log' | 'Monitoring' | 'Settings'
+=======
+  type AdminSection = 'Overview' | 'Users' | 'Organizations' | 'Branches' | 'Inventory' | 'Sales' | 'Notifications' | 'Messages' | 'Audit log' | 'Monitoring' | 'Settings'
+>>>>>>> b04b3351326f61cfeb195000ac3fbc1689a33cd7
   type AdminRow = Record<string, string | number | null>
   type AuditEntry = { source: string; id: string; action: string; actor: string | null; target: string; organizationId: string | null; metadata: Record<string, unknown>; createdAt: string; category: string; severity: 'info' | 'warning' | 'critical' }
   type MonitorMetric = { name: string; source: string; latency: number | null; status: MonitorStatus; detail: string; checkType: string; checkedAt: string; failure?: string; httpStatus?: number | null; environment?: string }
@@ -607,7 +615,10 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
     Overview: LayoutDashboard,
     Users,
     Organizations: ClipboardList,
+<<<<<<< HEAD
     Subscriptions: CreditCard,
+=======
+>>>>>>> b04b3351326f61cfeb195000ac3fbc1689a33cd7
     Branches: GitBranch,
     Inventory: Package,
     Sales: ShoppingCart,
@@ -618,7 +629,11 @@ function AdminConsole({ email, onBack, onLogout }: { email: string; onBack: () =
     Settings,
   }
   const adminSectionGroups: { label: string; items: AdminSection[] }[] = [
+<<<<<<< HEAD
     { label: 'Control room', items: ['Overview', 'Users', 'Organizations', 'Subscriptions'] },
+=======
+    { label: 'Control room', items: ['Overview', 'Users', 'Organizations'] },
+>>>>>>> b04b3351326f61cfeb195000ac3fbc1689a33cd7
     { label: 'Operations', items: ['Branches', 'Inventory', 'Sales'] },
     { label: 'Governance', items: ['Notifications', 'Messages', 'Audit log', 'Monitoring', 'Settings'] },
   ]

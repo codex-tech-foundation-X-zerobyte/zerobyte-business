@@ -4,7 +4,10 @@ import { corsHeadersFor } from '../_shared/cors.ts'
 
 const resources = {
   Organizations: { table: 'organizations', columns: 'id,name,slug,created_at' },
+<<<<<<< HEAD
   Subscriptions: { table: 'subscriptions', columns: 'id,organization_id,plan_id,status,trial_end,current_period_end,canceled_at,created_at' },
+=======
+>>>>>>> b04b3351326f61cfeb195000ac3fbc1689a33cd7
   Branches: { table: 'branches', columns: 'id,organization_id,name,code,status,created_at' },
   Inventory: { table: 'products', columns: 'id,organization_id,name,sku,stock,price,category,created_at' },
   Sales: { table: 'sales', columns: 'id,organization_id,branch_id,total,status,payment_method,created_at' },

@@ -19,6 +19,7 @@ self.addEventListener('install', (event) => {
       }
     }))
   }))
+<<<<<<< HEAD
   // Deliberately NOT calling self.skipWaiting() here. A worker that installs
   // while an older one is still controlling the page should sit in
   // "waiting" state so the running app can offer the user an explicit
@@ -28,6 +29,9 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') self.skipWaiting()
+=======
+  self.skipWaiting()
+>>>>>>> b04b3351326f61cfeb195000ac3fbc1689a33cd7
 })
 
 self.addEventListener('activate', (event) => {
