@@ -1,0 +1,37 @@
+{
+  "name": "Zerøbyte Admin Console",
+  "short_name": "Zerøbyte Admin",
+  "description": "A protected platform operations console for Zerøbyte Business.",
+  "id": "./admin.html",
+  "start_url": "./admin.html",
+  "scope": "./admin.html",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "background_color": "#07111d",
+  "theme_color": "#0a1118",
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
