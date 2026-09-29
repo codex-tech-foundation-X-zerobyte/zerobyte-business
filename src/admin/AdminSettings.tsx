@@ -1,0 +1,3 @@
+export function AdminSettings({ email }: { email: string }) {
+  return <section className="admin-card wide"><div className="admin-card-header"><div><h2>Admin settings</h2><p>Profile and environment-safe controls for this console.</p></div></div><div className="admin-settings"><div><span className="admin-card-label">Signed-in account</span><strong>{email}</strong></div><div><span className="admin-card-label">Access model</span><strong>Platform admin role + Supabase RLS</strong></div><div><span className="admin-card-label">Revenue</span><strong>See the Revenue section for live payment and subscription figures</strong></div></div></section>
+}
