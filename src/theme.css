@@ -1,0 +1,94 @@
+/* ==========================================================================
+   Theme (loaded last): neutral surfaces, ONE green.
+   Feedback from testers: too much green. So green is now reserved for actions, the active page, and good news.
+   Light  = clean white and soft grey, white rail.
+   Dark   = true black and charcoal, black rail, green only as the accent.
+   The rail (sidebar) is driven by --rail-* tokens so it matches the page in both modes.
+   ========================================================================== */
+
+.app.light, .surface-light, .legal-shell, .admin-shell, .auth-shell, .auth-loading {
+  --forest: #111513; --forest-deep: #000;
+  --bg: #f5f6f5; --panel: #ffffff; --panel-2: #f8f9f8;
+  --line: #e3e6e4; --line-strong: #cdd2cf;
+  --text: #0f1411; --muted: #5a645e; --faint: #69736d;
+  --brand: #0a7d45; --brand-hover: #086b3a; --brand-soft: #e7f4ec;
+  --shadow: 0 1px 2px rgba(15, 20, 17, .05); --shadow-lift: 0 10px 30px rgba(15, 20, 17, .12);
+  --control-bg: #fff;
+  --rail-bg: #ffffff; --rail-line: #e3e6e4; --rail-text: #56605a; --rail-strong: #0f1411; --rail-muted: #7d8780;
+  --rail-hover: #f1f3f2; --rail-active-bg: #e7f4ec; --rail-active-text: #075f33; --rail-field: #f5f6f5; --rail-field-line: #e3e6e4;
+}
+.app.dark, .surface-dark, .admin-shell.dark {
+  --forest: #161616; --forest-deep: #0d0d0d;
+  --bg: #0a0a0a; --panel: #121212; --panel-2: #181818;
+  --line: #242424; --line-strong: #353535;
+  --text: #ececec; --muted: #a3a3a3; --faint: #7c7c7c;
+  --brand: #3ddc84; --brand-hover: #66e8a0; --brand-soft: rgba(61, 220, 132, .12); --on-brand: #04170c;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .5); --shadow-lift: 0 10px 30px rgba(0, 0, 0, .6);
+  --control-bg: #0d0d0d;
+  --rail-bg: #050505; --rail-line: #1f1f1f; --rail-text: #a3a3a3; --rail-strong: #ffffff; --rail-muted: #6f6f6f;
+  --rail-hover: #141414; --rail-active-bg: rgba(61, 220, 132, .12); --rail-active-text: #ffffff; --rail-field: #101010; --rail-field-line: #232323;
+}
+
+/* ---- rail: business ---- */
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .sidebar { background: var(--rail-bg); border-right: 1px solid var(--rail-line); color: var(--rail-text); --sidebar-text: var(--rail-text); --sidebar-strong: var(--rail-strong); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .brand { color: var(--rail-strong); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .brand small { color: var(--rail-muted); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .brand-mark { background: var(--brand); color: var(--on-brand); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .workspace-select { background: var(--rail-field); border: 1px solid var(--rail-field-line); color: var(--rail-strong); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .workspace-select strong, :is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .workspace-switcher, :is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .sidebar .workspace-switcher { color: var(--rail-strong); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .workspace-select span { color: var(--rail-muted); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .workspace-switcher option { background: var(--panel); color: var(--text); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .workspace-icon, :is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .avatar { background: var(--brand-soft); color: var(--brand); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .nav-group p { color: var(--rail-muted); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .nav-item { color: var(--rail-text); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .nav-item:hover, :is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .nav-item:focus-visible { background: var(--rail-hover); color: var(--rail-strong); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .nav-item.active { background: var(--rail-active-bg); color: var(--rail-active-text); box-shadow: inset 3px 0 0 var(--brand); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .nav-item.active svg { color: var(--brand); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .sidebar-bottom { border-top: 1px solid var(--rail-line); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .user, :is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .user strong { color: var(--rail-strong); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .user span { color: var(--rail-muted); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .user:hover { background: var(--rail-hover); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .sidebar-collapse { color: var(--rail-text); border-color: var(--rail-field-line); background: transparent; }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .sidebar-collapse:hover, :is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .sidebar-collapse:focus-visible { background: var(--rail-hover); color: var(--rail-strong); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .close-nav { color: var(--rail-text); }
+
+/* ---- rail: admin ---- */
+.admin-sidebar { background: var(--rail-bg); border-right: 1px solid var(--rail-line); color: var(--rail-text); }
+.admin-collapse-button { color: var(--rail-text); border-color: var(--rail-field-line); background: transparent; }
+.admin-collapse-button:hover { background: var(--rail-hover); color: var(--rail-strong); border-color: var(--brand); }
+.admin-role { background: var(--rail-field); border: 1px solid var(--rail-field-line); color: var(--rail-strong); }
+.admin-role span { color: var(--rail-muted); }
+.admin-role strong { color: var(--rail-strong); }
+.admin-nav-label { color: var(--rail-muted); }
+.admin-nav-item { color: var(--rail-text); }
+.admin-nav-item svg { color: var(--rail-muted); }
+.admin-nav-item:hover { background: var(--rail-hover); color: var(--rail-strong); }
+.admin-nav-item.active { background: var(--rail-active-bg); color: var(--rail-active-text); border-color: transparent; box-shadow: inset 3px 0 0 var(--brand); }
+.admin-nav-item.active svg, .admin-nav-item:hover svg { color: var(--brand); }
+.admin-nav-badge { background: var(--brand); color: var(--on-brand); }
+.admin-sidebar-footer { border-top: 1px solid var(--rail-line); }
+.admin-sidebar-footer .secondary, .admin-sidebar-footer button:not(.text-btn) { background: var(--rail-field); border: 1px solid var(--rail-field-line); color: var(--rail-strong); }
+.admin-sidebar-footer .text-btn, .admin-sidebar-footer a { color: var(--rail-text); }
+.admin-mobile-menu { background: var(--panel); border-color: var(--line); color: var(--text); }
+
+/* ---- hero bands and small accents: neutral instead of green ---- */
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .report-profit { background: var(--forest); border-color: var(--forest); color: #e4e6e5; }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .report-profit .section-label, :is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .report-profit p { color: #a9aeab; }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .report-profit h2 { color: #f0f1f0; }
+.app.dark .report-profit { border: 1px solid var(--line); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .support-launcher { background: var(--text); color: var(--bg); border: 1px solid var(--line); }
+:is(.app, .legal-shell, .admin-shell, .auth-shell, .auth-loading) .support-launcher:hover { background: var(--brand); color: var(--on-brand); }
+.traffic-stat.primary { background: var(--forest); border-color: var(--forest); }
+.traffic-stat.primary > span, .traffic-stat.primary > small { color: #a9aeab; }
+.admin-shell.dark .traffic-stat.primary { border-color: var(--line); }
+.logo-tile.placeholder, .receipt-peek-logo.placeholder { background: var(--text); color: var(--bg); }
+.admin-shell .admin-pill.success, .app .status.completed { background: var(--brand-soft); color: var(--brand); }
+.admin-shell.dark .admin-pill.success { color: var(--brand); }
+.admin-shell.dark .admin-trend-chart polyline:not(.org-line):not(.sales-line) { stroke: var(--brand); }
+.admin-shell.dark .admin-chart-legend .users-dot { background: var(--brand); }
+.admin-shell.dark .traffic-stat.good > strong { color: var(--brand); }
+
+/* ---- dark surfaces that styles.css still hard-codes with green tints ---- */
+.admin-shell.dark .admin-trend-card, .admin-shell.dark .admin-card { background: var(--panel); border-color: var(--line); }
+.admin-shell.dark .admin-trend-chart { background: transparent; }
+.admin-shell.dark :is(input, select, textarea) { background: var(--control-bg); border-color: var(--line-strong); color: var(--text); }

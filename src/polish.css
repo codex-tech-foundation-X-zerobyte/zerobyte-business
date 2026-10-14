@@ -1,0 +1,157 @@
+/* Loaded last. Feedback states, fitted money, live traffic, and layout polish. */
+
+/* ---------- App-wide activity feedback ---------- */
+.zb-progress { position: fixed; z-index: 9999; top: 0; left: 0; right: 0; height: 3px; pointer-events: none; opacity: 0; transition: opacity .2s ease; background: linear-gradient(90deg, transparent, var(--mint, #3bf692) 30%, var(--green, #0a7b4a) 70%, transparent); background-size: 40% 100%; background-repeat: no-repeat; animation: zb-progress-run 1.1s ease-in-out infinite; }
+.zb-progress.on { opacity: 1; }
+@keyframes zb-progress-run { from { background-position: -40% 0; } to { background-position: 140% 0; } }
+
+button { transition: transform .08s ease, background-color .15s ease, border-color .15s ease, box-shadow .15s ease, opacity .15s ease; }
+button:not(:disabled):active { transform: scale(.975); }
+button[data-busy='true'] { position: relative; cursor: progress; pointer-events: auto; opacity: .85; }
+button[data-busy='true']:not(.icon-btn):not(.nav-item):not(.admin-nav-item):not(.text-btn)::after { content: ''; display: inline-block; width: 14px; height: 14px; margin-left: 9px; vertical-align: -2px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: zb-spin .7s linear infinite; }
+button.icon-btn[data-busy='true'], button.text-btn[data-busy='true'], button.nav-item[data-busy='true'], button.admin-nav-item[data-busy='true'] { opacity: .6; }
+@keyframes zb-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .zb-progress { animation: none; background: var(--mint, #3bf692); } button[data-busy='true']::after { animation-duration: 2s; } }
+
+/* ---------- Figures that always fit their box ---------- */
+.metric strong, .report-profit > strong, .bar-row strong { min-width: 0; max-width: 100%; overflow: hidden; white-space: nowrap; display: block; }
+.fit-text { display: inline-block; white-space: nowrap; font-variant-numeric: tabular-nums; line-height: inherit; vertical-align: baseline; }
+.fit-box { display: block; max-width: 100%; }
+
+/* ---------- Live traffic (admin) ---------- */
+.traffic-grid { display: grid; grid-template-columns: 1.4fr repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 4px; }
+.traffic-stat { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-soft, var(--panel)); min-width: 0; }
+.traffic-stat > span { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12.5px; font-weight: 600; }
+.traffic-stat > strong { font-family: var(--font-display); font-size: clamp(22px, 2.2vw, 30px); line-height: 1.1; letter-spacing: -.02em; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.traffic-stat > small { color: var(--muted); font-size: 12px; line-height: 1.4; }
+.traffic-stat.primary { background: var(--forest, #0b3d2a); border-color: var(--forest, #0b3d2a); }
+.traffic-stat.primary > span, .traffic-stat.primary > small { color: #a8cdb9; }
+.traffic-stat.primary > strong { color: #fff; font-size: clamp(30px, 3.2vw, 42px); }
+.traffic-stat.good > strong { color: var(--green-text, #0a7b4a); }
+.traffic-stat.warn > strong { color: #b7791f; }
+.traffic-stat.bad > strong { color: #d64545; }
+.admin-shell.dark .traffic-stat.good > strong { color: #5ff0a3; }
+.admin-shell.dark .traffic-stat.warn > strong { color: #f0b84a; }
+.admin-shell.dark .traffic-stat.bad > strong { color: #ff7b7b; }
+.traffic-chart { margin-top: 14px; }
+.traffic-chart svg { display: block; width: 100%; height: 96px; }
+.traffic-line { fill: none; stroke: var(--green, #0a7b4a); stroke-width: 2.2; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.traffic-area { fill: color-mix(in srgb, var(--green, #0a7b4a) 14%, transparent); stroke: none; }
+.traffic-chart-axis { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; color: var(--muted); font-size: 11.5px; }
+.live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: currentColor; margin-right: 6px; animation: zb-pulse 1.6s ease-in-out infinite; }
+@keyframes zb-pulse { 50% { opacity: .35; transform: scale(.8); } }
+.skeleton-card { height: 92px; border-radius: 12px; }
+.admin-theme-toggle { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+.admin-theme-toggle:hover { border-color: var(--green, #0a7b4a); }
+@media (max-width: 1100px) { .traffic-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .traffic-stat.primary { grid-column: 1 / -1; } }
+@media (max-width: 620px) { .traffic-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ---------- Admin layout polish ---------- */
+.admin-main { max-width: 1480px; }
+.admin-header { align-items: center; padding-bottom: 18px; margin-bottom: 20px; border-bottom: 1px solid var(--line); background: transparent; }
+.admin-header .section-label, .admin-header > div > span:first-child { display: block; margin-bottom: 4px; }
+.admin-card-label { text-transform: capitalize; font-weight: 600; font-size: 13px; color: var(--muted); }
+.admin-card-value { font-variant-numeric: tabular-nums; }
+.admin-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.admin-trend-chart polyline { stroke-width: 2.4; vector-effect: non-scaling-stroke; }
+.admin-trend-chart polyline:not(.org-line):not(.sales-line) { stroke: #0a7b4a; }
+.admin-trend-chart polyline.org-line { stroke: #2563eb; }
+.admin-trend-chart polyline.sales-line { stroke: #d99a1c; }
+.admin-chart-legend .users-dot { background: #0a7b4a; }
+.admin-chart-legend .org-dot { background: #2563eb; }
+.admin-chart-legend .sales-dot { background: #d99a1c; }
+.admin-shell.dark .admin-trend-chart polyline:not(.org-line):not(.sales-line) { stroke: #3bf692; }
+.admin-shell.dark .admin-trend-chart polyline.org-line { stroke: #60a5fa; }
+.admin-shell.dark .admin-trend-chart polyline.sales-line { stroke: #f5c451; }
+.admin-shell.dark .admin-chart-legend .users-dot { background: #3bf692; }
+.admin-shell.dark .admin-chart-legend .org-dot { background: #60a5fa; }
+.admin-shell.dark .admin-chart-legend .sales-dot { background: #f5c451; }
+.traffic-grid { margin-top: 16px; }
+.traffic-stat { align-items: flex-start; text-align: left; }
+.admin-trend-chart { background: transparent; border: 1px solid var(--line); border-radius: 12px; padding-top: 12px; overflow: hidden; }
+/* keep the floating Support button from covering the last row of any page */
+.page { padding-bottom: 96px; }
+
+/* ---------- Settings: side menu + grouped cards ---------- */
+.settings-page .settings-layout { display: grid; grid-template-columns: 224px minmax(0, 1fr); gap: 28px; align-items: start; }
+.settings-page .settings-tabs { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 2px; max-width: none; margin: 0; padding: 0; overflow: visible; border: 0; background: transparent; box-shadow: none; }
+.settings-page .settings-tab { justify-content: flex-start; width: 100%; min-height: 42px; padding: 0 14px; border-radius: 10px; color: var(--muted); font-weight: 550; background: transparent; box-shadow: none; transform: none; }
+.settings-page .settings-tab:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); color: var(--ink); transform: none; }
+.settings-page .settings-tab.active { background: var(--panel); color: var(--ink); font-weight: 650; box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgba(10, 46, 32, .06); }
+.settings-page .settings-tab.active svg { color: var(--brand, #0a7b4a); }
+.settings-content { display: grid; gap: 18px; min-width: 0; max-width: 860px; }
+.settings-content > .panel, .settings-content > section.panel { max-width: none; margin: 0; }
+.settings-content .settings-info, .settings-content .settings-preferences, .settings-content .settings-security { max-width: none; margin-top: 0; }
+.settings-content .settings-form { max-width: none; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 20px; padding: 24px; }
+.settings-content .settings-form > .settings-section-heading, .settings-content .settings-form > .settings-actions, .settings-content .settings-form > p { grid-column: 1 / -1; }
+.settings-content .settings-form label { color: var(--ink); font-size: 13px; font-weight: 600; gap: 7px; }
+
+.settings-stack { display: grid; gap: 18px; }
+.settings-card { display: grid; gap: 18px; padding: 24px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; }
+.settings-card > header h3 { margin: 0; font-family: var(--font-display); font-size: 16px; letter-spacing: -.01em; color: var(--ink); }
+.settings-card > header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; }
+.settings-field { display: grid; gap: 7px; align-content: start; font-size: 13px; font-weight: 600; color: var(--ink); }
+.settings-field.wide { grid-column: 1 / -1; }
+.settings-field .optional { margin-left: 6px; color: var(--muted); font-size: 11.5px; font-weight: 500; }
+.settings-field input { min-height: 44px; padding: 0 13px; font-weight: 500; }
+.settings-field .field-help { font-weight: 400; }
+
+.logo-row { display: flex; align-items: center; gap: 18px; padding: 16px; border: 1px dashed var(--line); border-radius: 14px; background: color-mix(in srgb, var(--ink) 2.5%, transparent); }
+.logo-tile { width: 72px; height: 72px; flex: 0 0 72px; object-fit: contain; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); padding: 6px; }
+.logo-tile.placeholder, .receipt-peek-logo.placeholder { display: grid; place-items: center; padding: 0; background: var(--forest, #0a2e20); color: var(--mint, #3bf692); font-family: var(--font-display); font-size: 28px; font-weight: 650; border-color: transparent; }
+.logo-actions { display: grid; gap: 8px; min-width: 0; }
+.logo-actions > div { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.button-like { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 16px; border-radius: 10px; font-weight: 600; font-size: 13.5px; cursor: pointer; border: 1px solid var(--line); background: var(--panel); color: var(--ink); transition: border-color .15s ease, background-color .15s ease; }
+.button-like:hover { border-color: var(--brand, #0a7b4a); }
+.danger-text { color: #c0392b; }
+
+.receipt-peek { background: color-mix(in srgb, var(--ink) 3%, var(--panel)); }
+.receipt-peek-body { display: flex; align-items: center; gap: 16px; padding: 18px; background: #fff; color: #10231a; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 1px 2px rgba(10, 46, 32, .05); }
+
+.receipt-peek-body strong { font-family: var(--font-display); font-size: 16px; }
+.receipt-peek-body em { font-style: normal; color: #4f6b5c; font-size: 13px; }
+.receipt-peek-body small { color: #6b8576; font-size: 12px; overflow-wrap: anywhere; }
+.receipt-peek-logo { width: 52px; height: 52px; flex: 0 0 52px; object-fit: contain; border-radius: 12px; border: 1px solid #e3ece6; }
+.receipt-peek-number { font: 600 12px 'DM Mono', monospace; color: #4f6b5c; padding: 5px 9px; border: 1px solid #d5e3da; border-radius: 8px; white-space: nowrap; }
+
+.settings-savebar { position: sticky; bottom: 14px; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 14px 12px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 8px 24px rgba(10, 46, 32, .12); font-size: 13px; }
+
+/* Billing */
+.billing-current h2 { display: flex; align-items: center; gap: 10px; font-size: 24px; }
+.billing-limits { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 16px 0 0; padding: 0; list-style: none; }
+.billing-limits li { display: grid; gap: 3px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--ink) 2.5%, transparent); }
+.billing-limits li span { color: var(--muted); font-size: 12px; text-transform: capitalize; }
+.billing-limits li strong { font-family: var(--font-display); font-size: 18px; font-variant-numeric: tabular-nums; }
+.billing-plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-top: 16px; }
+.billing-plan-card { display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.billing-plan-card > strong { font-family: var(--font-display); font-size: 16px; }
+.billing-plan-card .amount { font-family: var(--font-display); font-size: 22px; font-weight: 650; letter-spacing: -.02em; }
+.billing-plan-card > p { flex: 1; margin: 0; font-size: 13px; line-height: 1.5; }
+.billing-plan-card.billing-plan-current { border-color: var(--brand, #0a7b4a); box-shadow: 0 0 0 1px var(--brand, #0a7b4a); }
+.billing-plan-actions { display: grid; gap: 8px; margin-top: 6px; }
+.billing-plan-actions button, .billing-plan-card > button { width: 100%; }
+
+@media (max-width: 860px) {
+  .settings-page .settings-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .settings-page .settings-tabs { position: static; flex-direction: row; overflow-x: auto; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); scrollbar-width: none; }
+  .settings-page .settings-tab { width: auto; flex: 0 0 auto; white-space: nowrap; }
+}
+@media (max-width: 560px) {
+  .settings-grid, .settings-content .settings-form { grid-template-columns: minmax(0, 1fr); }
+  .settings-card, .settings-content .settings-form { padding: 18px; }
+  .logo-row { flex-direction: column; align-items: flex-start; }
+  .receipt-peek-body { flex-wrap: wrap; }
+  .settings-savebar { bottom: 76px; flex-direction: column; align-items: stretch; }
+}
+.receipt-peek-body > div:not(.receipt-peek-logo) { min-width: 0; display: grid; gap: 2px; flex: 1; }
+.settings-field .optional { margin-left: 4px; }
+@media (min-width: 561px) { .settings-savebar { padding-right: 150px; } }
+.settings-savebar-status { flex: 1; }
+.settings-section-heading .section-label { display: block; font-family: var(--font-display); font-size: 17px; font-weight: 650; letter-spacing: -.01em; text-transform: none; color: var(--ink); }
+.settings-section-heading p { font-size: 13px; }
+.billing-plan-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.billing-plan-card .amount { text-align: left; align-self: flex-start; font-size: 20px; }
+.billing-current > .section-label, .settings-content .panel > .section-label { display: block; margin-bottom: 4px; }
+.settings-content .panel > h2 { font-size: 20px; margin: 2px 0 4px; }
+.traffic-card > .traffic-grid, .traffic-card > .traffic-chart { margin-left: 18px; margin-right: 18px; margin-bottom: 18px; }

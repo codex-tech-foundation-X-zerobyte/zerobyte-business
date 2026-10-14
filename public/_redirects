@@ -1,0 +1,4 @@
+# Cloudflare Pages single-page-app routing (Vercel uses the rewrites in vercel.json).
+/admin    /admin.html  200
+/admin/*  /admin.html  200
+/*        /index.html  200
