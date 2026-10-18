@@ -1,0 +1,32 @@
+name: CI
+
+# Runs on every push and pull request. Vercel / Cloudflare Pages build and deploy from git on their own;
+# this workflow only makes sure what you push still type-checks, lints, passes tests and builds.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Type-check and build
+        env:
+          # Placeholders: the build only needs the variables to exist. Real values live in your host's dashboard.
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_ANON_KEY: placeholder
+        run: npm run build
+      - run: npm run lint
+      - run: npm test

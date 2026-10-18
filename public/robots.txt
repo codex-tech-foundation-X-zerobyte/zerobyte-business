@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /admin/
+Sitemap: https://codextech-lab.github.io/zerobyte-business/sitemap.xml
