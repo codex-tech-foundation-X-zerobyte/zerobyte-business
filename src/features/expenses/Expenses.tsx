@@ -1,0 +1,206 @@
+import { Plus } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { EmptyInline, FormDisclosure, LoadMoreBar, PageIntro, TableSkeleton } from '../../components/ui'
+import { usePagedList } from '../../lib/paging'
+import { supabase } from '../../lib/supabase'
+
+export function Expenses({ orgId }: { orgId: string }) {
+  type ExpenseRow = {
+    id: string
+    title: string
+    category: string
+    amount: number
+    expense_date: string
+    payment_method: string | null
+    description: string | null
+  }
+  const list = usePagedList<ExpenseRow>({
+    deps: [orgId],
+    fetchPage: async ({ from, to }, _term, first) =>
+      supabase
+        ? supabase
+            .from('expenses')
+            .select('id,title,category,amount,expense_date,payment_method,description', {
+              count: first ? 'estimated' : undefined,
+            })
+            .eq('organization_id', orgId)
+            .order('expense_date', { ascending: false })
+            .order('id')
+            .range(from, to)
+        : { data: [], error: null },
+  })
+  const rows = list.rows
+  const [form, setForm] = useState({
+    title: '',
+    category: 'General',
+    amount: '',
+    expense_date: new Date().toISOString().slice(0, 10),
+    payment_method: 'cash',
+    description: '',
+  })
+  const [error, setError] = useState('')
+  const load = useCallback(() => {
+    void list.reload()
+  }, [list])
+  async function add(event: React.FormEvent) {
+    event.preventDefault()
+    if (!supabase) return
+    const { error: result } = await supabase
+      .from('expenses')
+      .insert({
+        organization_id: orgId,
+        title: form.title,
+        category: form.category,
+        amount: Number(form.amount),
+        expense_date: form.expense_date,
+        payment_method: form.payment_method,
+        description: form.description || null,
+      })
+    if (result) setError(result.message)
+    else {
+      setForm({ ...form, title: '', amount: '', description: '' })
+      load()
+    }
+  }
+  return (
+    <div className="page">
+      <PageIntro
+        label="Expenses"
+        title="See where money goes."
+        description="See costs next to the work they support."
+      />
+      <FormDisclosure featured label="Record expense">
+        <form className="panel record-form three" onSubmit={add}>
+          <div>
+            <label>
+              Expense title
+              <input
+                required
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                placeholder="Shop rent"
+              />
+            </label>
+          </div>
+          <div>
+            <label>
+              Category
+              <input
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                placeholder="Operations"
+              />
+            </label>
+          </div>
+          <div>
+            <label>
+              Amount
+              <input
+                required
+                type="number"
+                min="0"
+                value={form.amount}
+                onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                placeholder="₦0.00"
+              />
+            </label>
+          </div>
+          <div>
+            <label>
+              Date
+              <input
+                required
+                type="date"
+                value={form.expense_date}
+                onChange={(e) => setForm({ ...form, expense_date: e.target.value })}
+              />
+            </label>
+          </div>
+          <div>
+            <label>
+              Paid via
+              <select
+                value={form.payment_method}
+                onChange={(e) => setForm({ ...form, payment_method: e.target.value })}
+              >
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="transfer">Bank transfer</option>
+                <option value="mobile_money">Mobile money</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+          </div>
+          <div className="form-wide">
+            <label>
+              Notes (optional)
+              <input
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                placeholder="What this was for"
+              />
+            </label>
+          </div>
+          <button className="primary">
+            <Plus size={16} /> Add expense
+          </button>
+          {error && <div className="form-error">{error}</div>}
+        </form>
+      </FormDisclosure>
+      <section className="panel table-panel">
+        {list.error && (
+          <div className="form-error" role="alert">
+            {list.error}
+          </div>
+        )}
+        {list.loading ? (
+          <TableSkeleton />
+        ) : rows.length ? (
+          <>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Expense</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Paid via</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.id}>
+                      <td>
+                        <strong>{row.title}</strong>
+                        {row.description && <small className="field-help">{row.description}</small>}
+                      </td>
+                      <td>{row.category}</td>
+                      <td>{row.expense_date}</td>
+                      <td>{row.payment_method || '—'}</td>
+                      <td className="amount">₦{Number(row.amount).toLocaleString('en-NG')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <LoadMoreBar
+              shown={rows.length}
+              total={list.total}
+              hasMore={list.hasMore}
+              loading={list.loadingMore}
+              onMore={() => void list.loadMore()}
+              noun="expenses"
+            />
+          </>
+        ) : (
+          <EmptyInline
+            title="No expenses yet"
+            text="Record what you spend, and Reports will show your real profit."
+            action="Record expense"
+          />
+        )}
+      </section>
+    </div>
+  )
+}

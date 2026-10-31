@@ -1,0 +1,65 @@
+/* Public pages: landing, support, policy pages, the cookie banner, and the promoter programme section. */
+
+/* ---- landing navigation and footer ---- */
+.landing-nav-actions { display: flex; align-items: center; gap: 6px; }
+.landing-nav-link { padding: 8px 12px; border-radius: 10px; color: var(--muted); font-weight: 600; font-size: 14px; text-decoration: none; }
+.landing-nav-link:hover { color: var(--text); background: var(--panel-2); }
+@media (max-width: 720px) { .landing-nav-link { display: none; } }
+.landing-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 28px; }
+.footer-brand { display: grid; gap: 2px; } .footer-brand span { color: var(--muted); font-size: 13px; }
+.legal-links { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
+.legal-links a, .legal-links button { padding: 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 14px; text-decoration: none; cursor: pointer; }
+.legal-links a:hover, .legal-links button:hover { color: var(--text); text-decoration: underline; }
+.footer-copy { flex-basis: 100%; color: var(--muted); font-size: 12.5px; }
+
+/* ---- promoter programme section ---- */
+.landing-promoters { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(28px, 5vw, 64px); align-items: start; padding: clamp(28px, 5vw, 56px); margin: 0 auto; max-width: 1180px; border: 1px solid var(--line); border-radius: 24px; background: var(--panel); }
+.landing-promoters h2 { margin: 8px 0 14px; font-family: var(--font-display); font-size: clamp(26px, 3.4vw, 40px); letter-spacing: -.02em; line-height: 1.1; }
+.promoter-rates { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.promoter-rates > div { display: grid; gap: 6px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel-2, var(--panel)); }
+.promoter-rates svg { color: var(--brand); }
+.promoter-rates strong { font-family: var(--font-display); font-size: clamp(22px, 2.6vw, 30px); letter-spacing: -.02em; line-height: 1.1; }
+.promoter-rates span { color: var(--muted); font-size: 13px; line-height: 1.45; }
+.promoter-example { margin: 16px 0 0; padding: 14px 16px; border-radius: 14px; background: var(--brand-soft); font-size: 14px; line-height: 1.6; }
+.promoter-steps { display: grid; gap: 12px; margin: 20px 0 0; padding: 0; list-style: none; }
+.promoter-steps li { display: flex; gap: 12px; align-items: flex-start; font-size: 14.5px; line-height: 1.55; }
+.promoter-steps li span { flex: 0 0 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: var(--brand); color: var(--on-brand, #fff); font-weight: 700; font-size: 13px; }
+.promoter-fine { display: block; margin-top: 16px; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+.promoter-terms-card { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--line)); border-radius: 14px; background: var(--brand-soft); font-size: 14px; line-height: 1.55; }
+@media (max-width: 900px) { .landing-promoters { grid-template-columns: minmax(0, 1fr); } .promoter-rates { grid-template-columns: minmax(0, 1fr); } .promoter-rates > div { grid-template-columns: auto 1fr; align-items: center; column-gap: 12px; } .promoter-rates > div svg { grid-row: span 2; } }
+
+/* ---- support page ---- */
+.support-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 22px 0 8px; }
+.support-card { display: grid; gap: 8px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); color: var(--text); text-decoration: none; transition: border-color .15s ease, transform .15s ease; }
+.support-card:hover { border-color: var(--brand); transform: translateY(-2px); }
+.support-card svg { color: var(--brand); } .support-card span { color: var(--muted); font-size: 14px; line-height: 1.5; }
+.faq { display: grid; gap: 10px; margin-top: 12px; }
+.faq details { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); padding: 0 18px; }
+.faq summary { padding: 16px 0; font-weight: 650; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: '+'; color: var(--brand); font-size: 20px; line-height: 1; }
+.faq details[open] summary::after { content: '\2212'; }
+.faq details p { margin: 0 0 16px; color: var(--muted); line-height: 1.65; }
+.legal-footer { padding: 24px clamp(16px, 4vw, 48px); border-top: 1px solid var(--line); margin-top: 40px; }
+
+/* ---- cookie banner and dialog ---- */
+.cookie-banner { position: fixed; z-index: 9000; left: 50%; bottom: 16px; transform: translateX(-50%); width: min(960px, calc(100% - 24px)); display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px 18px; align-items: center; padding: 16px 18px; background: var(--panel); color: var(--text); border: 1px solid var(--line-strong); border-radius: 18px; box-shadow: var(--shadow-lift); animation: cookie-in .35s ease both; }
+.cookie-banner p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--muted); } .cookie-banner p strong { color: var(--text); } .cookie-banner a { color: var(--brand); font-weight: 600; }
+.cookie-icon { color: var(--brand); }
+.cookie-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: center; }
+.cookie-actions button { min-height: 42px; padding-inline: 16px; }
+@keyframes cookie-in { from { opacity: 0; transform: translate(-50%, 14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@media (max-width: 760px) { .cookie-banner { grid-template-columns: minmax(0, 1fr); bottom: 0; width: 100%; border-radius: 18px 18px 0 0; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); } .cookie-icon { display: none; } .cookie-actions { justify-content: stretch; } .cookie-actions button { flex: 1 1 calc(50% - 8px); } .cookie-actions .primary { flex-basis: 100%; order: -1; } }
+.cookie-backdrop { position: fixed; inset: 0; z-index: 9500; display: grid; place-items: center; padding: 16px; background: rgba(8, 10, 9, .55); }
+.cookie-dialog { position: relative; width: min(520px, 100%); max-height: calc(100dvh - 32px); overflow: auto; display: grid; gap: 14px; padding: 26px 24px 22px; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 24px 60px rgba(0, 0, 0, .35); outline: none; }
+.cookie-dialog h2 { margin: 0; font-family: var(--font-display); font-size: 20px; padding-right: 34px; } .cookie-lede { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.cookie-close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; display: grid; place-items: center; }
+.cookie-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; cursor: default; }
+.cookie-row > div { display: grid; gap: 4px; } .cookie-row span { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.cookie-row input[type='checkbox'] { width: 22px; height: 22px; accent-color: var(--brand); flex: 0 0 auto; margin-top: 2px; }
+.cookie-row .cookie-always { white-space: nowrap; font-weight: 600; color: var(--brand); font-size: 12.5px; }
+.cookie-actions.dialog { justify-content: flex-start; margin-top: 4px; }
+
+/* The landing page follows the same neutral black and green palette as the app (it used to be a deep green). */
+.landing { --forest: #111111; --forest-deep: #0a0a0a; background: #0a0a0a; }
+.landing h1 em, .landing h1 .accent { color: var(--mint, #3bf692); }

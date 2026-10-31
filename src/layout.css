@@ -1,0 +1,48 @@
+/* Page-level search: shown only on the pages that have a list to filter. */
+.page-search { display: flex; align-items: center; gap: 10px; width: min(420px, 100%); margin: 4px 0 18px; padding: 0 14px; min-height: 44px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--muted); transition: border-color .15s, box-shadow .15s; }
+.page-search:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent); }
+.page-search input { flex: 1; min-width: 0; min-height: 0; height: auto; border: 0 !important; outline: 0; background: transparent !important; box-shadow: none !important; border-radius: 0; color: var(--text); font-size: 15px; padding: 10px 0 !important; }
+.page-search input::-webkit-search-cancel-button { cursor: pointer; }
+
+/* ---------- Legal pages: readable and credible ---------- */
+.legal-nav .text-btn { color: var(--brand); font-weight: 650; }
+.legal-updated { font-family: inherit; font-size: 13.5px; color: var(--muted); margin: 18px 0 28px; }
+.legal-glance { margin: 0 0 28px; padding: 18px 20px; border: 1px solid var(--line); border-left: 4px solid var(--brand); border-radius: 12px; background: var(--panel); }
+.legal-glance strong { display: block; margin-bottom: 8px; font-size: 15px; color: var(--text); }
+.legal-glance ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--text); line-height: 1.55; }
+.legal-glance small { display: block; margin-top: 10px; color: var(--muted); }
+.legal-toc { margin: 0 0 36px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+.legal-toc strong { display: block; margin-bottom: 8px; font-size: 15px; color: var(--text); }
+.legal-toc ol { margin: 0; padding-left: 22px; columns: 2; column-gap: 32px; line-height: 1.9; }
+.legal-toc a { color: var(--brand); text-decoration: none; }
+.legal-toc a:hover { text-decoration: underline; }
+@media (max-width: 640px) { .legal-toc ol { columns: 1; } }
+.legal-content section { scroll-margin-top: 24px; }
+.legal-num { display: inline-grid; place-items: center; min-width: 28px; height: 28px; margin-right: 10px; padding: 0 8px; border-radius: 8px; background: var(--brand-soft); color: var(--brand); font-size: 14px; font-weight: 700; vertical-align: 2px; }
+.legal-contact { margin-top: 40px; padding: 20px 22px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+.legal-contact h2 { margin: 0 0 12px !important; font-size: 17px; }
+.legal-contact dl { display: grid; grid-template-columns: max-content 1fr; gap: 8px 22px; margin: 0; }
+.legal-contact dt { color: var(--muted); }
+.legal-contact dd { margin: 0; color: var(--text); overflow-wrap: anywhere; }
+.legal-contact a { color: var(--brand); }
+
+/* ---------- Sidebar on short or zoomed windows ---------- */
+/* The menu is long (14 links plus Settings). On a short window it scrolls, so the scrollbar is slim and quiet instead
+   of a heavy black bar, and the spacing tightens so more of the menu is visible without scrolling. */
+.app .sidebar { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+.app .sidebar::-webkit-scrollbar { width: 6px; }
+.app .sidebar::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 6px; }
+.app .sidebar::-webkit-scrollbar-track { background: transparent; }
+@media (max-height: 820px) {
+  .app .sidebar { padding-block: 16px; }
+  .app .sidebar .brand { padding-bottom: 14px; }
+  .app .sidebar .nav-group { margin-bottom: 12px; }
+  .app .sidebar .nav-group p { margin-bottom: 4px; }
+  .app .sidebar .nav-item { padding-block: 7px; }
+}
+@media (max-height: 640px) {
+  .app .sidebar .nav-group { margin-bottom: 6px; }
+  .app .sidebar .nav-item { padding-block: 5px; font-size: 13px; }
+}
+/* On a phone the "More" menu is a drawer that slides over the page; keep its last links clear of the bottom bar. */
+@media (max-width: 860px) { .app .sidebar { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }

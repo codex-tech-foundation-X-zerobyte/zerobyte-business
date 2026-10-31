@@ -1,0 +1,24 @@
+/* Smooth scrolling and a scrollbar that matches the theme (light, dark, admin). Honours "reduce motion". */
+:root { --scroll-thumb: rgba(15, 20, 17, .26); --scroll-thumb-hover: rgba(10, 125, 69, .75); }
+:root[data-theme='dark'], .app.dark, .admin-shell.dark { --scroll-thumb: rgba(255, 255, 255, .24); --scroll-thumb-hover: rgba(61, 220, 132, .8); }
+
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+* { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background-color: var(--scroll-thumb); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; transition: background-color .2s ease; }
+*::-webkit-scrollbar-thumb:hover { background-color: var(--scroll-thumb-hover); }
+*::-webkit-scrollbar-corner { background: transparent; }
+/* the sidebar sits on a dark or light rail depending on theme: keep its scrollbar quiet */
+.sidebar, .admin-sidebar { scrollbar-width: none; }
+.sidebar:hover, .admin-sidebar:hover { scrollbar-width: thin; }
+.table-wrap, .product-search-results, .guide-toc { scroll-behavior: smooth; }
+
+/* Landing sections ease in as they scroll into view */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s cubic-bezier(.2, .7, .2, 1); }
+.reveal.in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html, * { scroll-behavior: auto !important; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+}

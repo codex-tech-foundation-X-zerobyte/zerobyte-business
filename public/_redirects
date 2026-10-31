@@ -1,0 +1,7 @@
+# Cloudflare Pages single-page-app routing (Vercel uses the rewrites in vercel.json).
+/privacy.html  /privacy  301
+/terms.html    /terms    301
+/cookies.html  /cookies  301
+/admin    /admin.html  200
+/admin/*  /admin.html  200
+/*        /index.html  200

@@ -1,0 +1,205 @@
+{
+  "updated": "26 October 2026",
+  "terms": {
+    "label": "Terms of Service",
+    "title": "Terms of Service",
+    "intro": "These terms govern your use of {{company}} Business (the \"Service\"). By creating an account or using the Service you agree to them. If you use the Service for a business, you confirm you can bind that business to these terms.",
+    "sections": [
+      [
+        "Who we are",
+        "The Service is operated by {{company}} (\"we\", \"us\"). {{address}}Questions about these terms? {{contact}}"
+      ],
+      [
+        "Eligibility and accounts",
+        [
+          "You must be at least 18 years old and able to enter a binding contract.",
+          "Give accurate information and keep your sign-in details private. You are responsible for activity on your account, including actions by team members you add.",
+          "The business owner controls access for the team and can change or remove it. Tell us promptly if you think your account has been accessed without permission."
+        ]
+      ],
+      [
+        "What the Service does",
+        "{{company}} Business helps you record sales, stock, customers, expenses and receipts, and see reports from what you record. Some features work offline and sync when you reconnect. We work to keep the Service available and accurate, but we do not promise uninterrupted access, and figures depend on the information you and your team enter."
+      ],
+      [
+        "Your business data",
+        "You own the business records you enter. You give us permission to store and process them only to provide the Service to you. You can export your records from the Records page, and you can ask us to delete your account and data. Where your records include personal details of your own customers, you are responsible for having a lawful reason to hold them; see the Privacy Policy."
+      ],
+      [
+        "Plans, payments and renewals",
+        [
+          "Every new business gets a free trial of 7 days, with no card needed. After that you must pay for a plan to keep using the service. Plans and their prices are shown in the app, in naira, before you pay. The price is set by us on our servers, not by your browser.",
+          "Each payment is a one-time payment for the period shown (usually one month). Plans do not renew automatically; you choose when to renew.",
+          "Payments are processed by Paystack on its own secure page. We never see or store your card or bank details. Your plan is activated only after Paystack confirms the exact amount.",
+          "The free trial can be used once per business. When the trial or a paid period ends, your business becomes read-only: you can still sign in and view your records, which are kept, but you cannot add or change anything until you pay. Paying unlocks your business as soon as the payment is confirmed.",
+          "Plan limits (for example products, branches and team members) apply to the plan in force. Prices and plans may change; a change does not affect a period you have already paid for."
+        ]
+      ],
+      [
+        "Refunds and cancellation",
+        [
+          "Because a paid plan is activated as soon as payment is confirmed, payments are generally not refundable.",
+          "We will refund a payment that was charged in error, charged twice, taken for a different amount than the price shown, or that did not activate your plan. Contact support within 14 days with your Paystack payment reference.",
+          "You can stop using paid features at any time by not renewing. You can ask us to close your account whenever you wish."
+        ]
+      ],
+      [
+        "Acceptable use",
+        [
+          "Do not use the Service for anything unlawful, to harm others, or to record fraudulent transactions.",
+          "Do not attempt to break, probe, overload or bypass the security of the Service, or access data that is not yours. If you find a vulnerability, please tell us instead of exploiting it.",
+          "Do not resell or share access to the Service outside your own business without our written agreement."
+        ]
+      ],
+      [
+        "Promoter programme",
+        "Anyone approved as a Zerøbyte promoter can earn commission on payments made by businesses they refer, at the rates published on our promoter page at the time the referred business makes its first payment. Commission is calculated on the amount the referred business pays for its plan, is limited to the period stated there, and is paid after the payment is confirmed. Promoters must not mislead people, spam, or advertise falsely, and may not refer themselves. We may withhold or reverse commission for fraud, refunded or reversed payments, or breach of these terms, and may change the rates for new referrals with notice on the promoter page."
+      ],
+      [
+        "Third-party services",
+        "The Service relies on providers such as Paystack (payments), Supabase (database and sign-in) and our hosting provider. We are not responsible for failures of services we do not control, but we choose reputable providers and limit the data we share with them."
+      ],
+      [
+        "Suspension and ending",
+        "We may suspend or close an account that breaches these terms, puts other users or the Service at risk, or is required by law, and will give notice where we reasonably can. You may stop using the Service at any time."
+      ],
+      [
+        "Liability",
+        "The Service is provided on an \"as is\" and \"as available\" basis to the extent the law allows. We are not liable for indirect or consequential loss, or loss of profit or data caused by things outside our reasonable control. Our total liability for any claim is limited to the amount you paid us for the Service in the 12 months before the claim. Nothing in these terms limits liability that cannot lawfully be limited."
+      ],
+      [
+        "Changes to these terms",
+        "We may update these terms. If a change is material we will tell you in the app or by message before it takes effect. Continuing to use the Service after the date shown means you accept the update."
+      ],
+      [
+        "Governing law",
+        "These terms are governed by the laws of the Federal Republic of Nigeria. We will try to resolve any dispute in good faith first; if that fails, the courts of Nigeria have jurisdiction."
+      ],
+      [
+        "Contact",
+        "{{contact}}"
+      ]
+    ],
+    "highlights": [
+      "Every new business gets a free trial of 7 days, with no card needed.",
+      "After the trial you pay for a plan to keep going. Each payment covers one month and never renews by itself.",
+      "If a trial or paid month ends, your business becomes read-only. Your records are kept and everything unlocks when you pay.",
+      "You own your business records. We store them only to run the Service for you.",
+      "Payments go through Paystack. We never see or store your card details."
+    ]
+  },
+  "privacy": {
+    "label": "Privacy Policy",
+    "title": "Privacy Policy",
+    "intro": "This policy explains what personal data {{company}} collects when you use the Service, why, who handles it, how long we keep it, and the rights you have under the Nigeria Data Protection Act 2023 (NDPA).",
+    "sections": [
+      [
+        "Who is responsible",
+        "{{company}} is the controller of the data about your account, billing and use of the Service. For the business records you enter about your own customers, suppliers and staff, you decide what to collect and we act as your processor. {{address}}Contact: {{contact}}"
+      ],
+      [
+        "What we collect",
+        [
+          "Account details: your name, email address, phone number and sign-in credentials (passwords are stored in hashed form by our sign-in provider).",
+          "Business records you enter: business and branch details, products, stock, sales, receipts, expenses, and your customers' names and contact details.",
+          "Billing: the plan you choose, payment reference, amount, status and payment channel reported by Paystack. We do not receive or store your card or bank details.",
+          "Promoters: your application details and referral activity.",
+          "Use of the site and app: pages visited (without cookies, see below), the days your account opened the app, device type, and security and audit records such as sign-in attempts.",
+          "Support: messages you send us and the information you include in them."
+        ]
+      ],
+      [
+        "Why we use it and our lawful basis",
+        [
+          "To provide the Service you asked for, including running your account, recording your business data and taking payment (performance of a contract).",
+          "To keep the Service secure, prevent fraud and abuse, and fix problems (legitimate interests, and legal obligations).",
+          "To count visits and understand which features are used so we can improve the Service (legitimate interests; Google Analytics only with your consent).",
+          "To send service messages such as payment confirmations and important notices (contract and legitimate interests).",
+          "To meet legal, tax and accounting duties (legal obligation).",
+          "We do not sell your personal data."
+        ]
+      ],
+      [
+        "Counting visits and cookies",
+        "We count visits to our public pages without cookies: your browser keeps a random number and we store only a scrambled version of it combined with the date, plus the page, the website you came from and whether you used a phone, tablet or computer. We do not store your IP address, and the same person cannot be linked from one day to the next. If you choose Reject in our cookie settings, or your browser sends Do Not Track, you are not counted. Google Analytics runs only if you accept analytics cookies. See the Cookie Policy for details."
+      ],
+      [
+        "Who we share data with",
+        "We share data only with service providers that help us run the Service, under contracts that limit their use of it: Supabase (database, sign-in and file storage), our website hosting provider, Paystack (payment processing) and, only if you accept analytics cookies, Google (Analytics). We may also disclose data if the law or a valid legal request requires it, or to protect people and the Service from fraud or harm."
+      ],
+      [
+        "Transfers outside Nigeria",
+        "Some providers store or process data outside Nigeria. When that happens we rely on providers that apply appropriate safeguards, and we limit the data we send to what is needed."
+      ],
+      [
+        "How long we keep data",
+        "We keep account and business records while your account is open. After you ask us to close it, we delete or anonymise your data within a reasonable time, except records we must keep for legal, tax or accounting reasons (for example payment records) and copies that remain in backups until they expire. Raw visit records are kept for up to 180 days."
+      ],
+      [
+        "Security",
+        "We use encryption in transit, access controls so that each business can see only its own records, restricted administrator access, audit logs and throttling of repeated sign-in attempts. No system is perfectly secure; if a breach affects your data we will tell you and the authorities as the law requires."
+      ],
+      [
+        "Your rights",
+        [
+          "You may ask to access, correct or delete your personal data, restrict or object to certain uses, receive a copy in a portable format, and withdraw consent at any time (for example in Cookie settings).",
+          "Contact us using the details below and we will respond within a reasonable time. You also have the right to complain to the Nigeria Data Protection Commission."
+        ]
+      ],
+      [
+        "Children",
+        "The Service is for businesses and is not intended for anyone under 18. We do not knowingly collect personal data from children."
+      ],
+      [
+        "Changes",
+        "We may update this policy. We will show the date of the latest version at the top and tell you about material changes in the app."
+      ],
+      [
+        "Contact",
+        "{{contact}}"
+      ]
+    ],
+    "highlights": [
+      "We collect what we need to run your account: your details, the business records you enter, and payment references from Paystack.",
+      "We do not sell your personal data, and we never see or store your card or bank details.",
+      "Each business can see only its own records. Administrator access is restricted and logged.",
+      "You can ask to access, correct or delete your data at any time."
+    ]
+  },
+  "cookies": {
+    "label": "Cookie Policy",
+    "title": "Cookie Policy",
+    "intro": "This page explains the cookies and similar storage {{company}} uses, and how you can control them. You can change your choice at any time with the Cookie settings link at the bottom of our pages.",
+    "sections": [
+      [
+        "Strictly necessary storage (always on)",
+        "These are needed for the Service to work and do not need consent. They are kept in your browser's local storage or database rather than in advertising cookies: your sign-in session, your theme choice, your offline data and pending changes, tour and notice preferences, and a record of your cookie choice."
+      ],
+      [
+        "Analytics (only with your consent)",
+        "If you choose Accept, we load Google Analytics, which sets cookies such as _ga and _ga_* to measure how people find and use our public pages (pages viewed, approximate location, device type). Google receives that usage information. If you choose Reject, Google Analytics is not loaded and no Google cookies are set."
+      ],
+      [
+        "Our own visit counting",
+        "Separately, we count visits to our public pages without cookies. Your browser stores a random identifier (zerobyte.vid) in local storage; we keep only a scrambled version combined with the date, which cannot be linked from day to day. If you choose Reject, the identifier is deleted and you are not counted."
+      ],
+      [
+        "Advertising",
+        "We do not currently use advertising or retargeting cookies. If we start to, we will update this page and ask for your consent first."
+      ],
+      [
+        "Your choices",
+        "Use the Cookie settings link to accept or reject analytics at any time. You can also block or delete cookies and site storage in your browser settings, though the Service needs its strictly necessary storage to keep you signed in. We ask for your choice again after 12 months or if we change what we use."
+      ],
+      [
+        "Contact",
+        "{{contact}}"
+      ]
+    ],
+    "highlights": [
+      "We only store what the site needs to work, and analytics cookies only if you accept them.",
+      "We do not use advertising or retargeting cookies.",
+      "You can change your choice at any time from Cookie settings in the footer."
+    ]
+  }
+}

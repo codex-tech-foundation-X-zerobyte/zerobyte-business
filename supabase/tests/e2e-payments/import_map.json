@@ -1,0 +1,1 @@
+{ "imports": { "https://esm.sh/@supabase/supabase-js@2": "npm:@supabase/supabase-js@2", "https://deno.land/std@0.224.0/http/server.ts": "./serve_shim.ts" } }

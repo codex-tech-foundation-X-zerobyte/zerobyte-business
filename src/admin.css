@@ -1,0 +1,40 @@
+/* Admin console polish. Loaded last so it refines the shared theme. */
+
+/* 1. Cards have zero padding by design, so anything placed straight inside one must bring its own side space.
+      These were sitting hard against the card edge (search boxes, empty states, forms, filters, plan cards). */
+.admin-card.wide > .admin-search-row,
+.admin-card.wide > .admin-form,
+.admin-card.wide > .admin-plan-grid,
+.admin-card.wide > .audit-filters,
+.admin-card.wide > p.field-help { margin-inline: 18px; }
+.admin-card.wide > .admin-search-row { margin-top: 4px; }
+.admin-card.wide > .admin-plan-grid,
+.admin-card.wide > .admin-form,
+.admin-card.wide > .audit-filters { margin-bottom: 18px; }
+.admin-card.wide > .admin-empty { margin: 4px 18px 18px; padding: 36px 18px; font-size: 13.5px; }
+
+/* 2. Sidebar: 20 links never fit in one screen, and the scrollbar was invisible, so the last groups looked missing.
+      Tighter rows plus a thin visible scrollbar and soft edge shadows that appear only when there is more to scroll to. */
+.admin-nav {
+  gap: 12px; scrollbar-width: thin; scrollbar-color: rgba(128, 128, 128, .5) transparent;
+  background:
+    linear-gradient(var(--rail-bg) 30%, rgba(0, 0, 0, 0)) top / 100% 34px no-repeat local,
+    linear-gradient(rgba(0, 0, 0, 0), var(--rail-bg) 70%) bottom / 100% 34px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, .16), rgba(0, 0, 0, 0)) top / 100% 12px no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, .16), rgba(0, 0, 0, 0)) bottom / 100% 12px no-repeat scroll;
+}
+.admin-nav::-webkit-scrollbar { width: 8px; }
+.admin-nav::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, .5); border-radius: 8px; }
+.admin-nav::-webkit-scrollbar-track { background: transparent; }
+.admin-nav-group { gap: 2px; }
+.admin-shell:not(.admin-sidebar-collapsed) .admin-nav-item { min-height: 36px; padding-block: 6px; }
+
+/* 3. KPI tiles: breathing room under the card above, and tidy rows of four instead of 5 + 3 on wide screens. */
+.admin-card + .akpi-grid, .admin-card.wide + .akpi-grid { margin-top: 16px; }
+@media (min-width: 1100px) { .akpi-grid:not(.compact) { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* 4. Phone header: the three actions share one tidy row instead of "View audit log" wrapping onto two lines. */
+@media (max-width: 620px) {
+  .admin-actions { display: grid; grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr); gap: 8px; width: 100%; }
+  .admin-actions button { min-height: 44px; padding-inline: 8px; font-size: 13px; white-space: nowrap; }
+}

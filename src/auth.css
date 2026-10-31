@@ -1,0 +1,64 @@
+/* ==========================================================================
+   Sign-in, sign-up, recovery and admin sign-in (V8 design): a light page, the hero text on the left and a clean card
+   on the right. On a phone the hero goes and only the logo and the form remain.
+   ========================================================================== */
+.auth-shell, .auth-loading {
+  --a-bg: #f5f6f5; --a-card: #ffffff; --a-text: #141a16; --a-muted: #5b655f; --a-line: #e3e7e4; --a-line-strong: #cfd6d1;
+  --a-brand: #087a42; --a-brand-hover: #066637; --a-brand-soft: #e7f4ec;
+  min-height: 100dvh; display: grid; place-items: center; padding: 32px 24px; box-sizing: border-box;
+  background: var(--a-bg); color: var(--a-text);
+}
+.auth-shell { position: relative; }
+
+.auth-layout { width: min(1100px, 100%); display: grid; grid-template-columns: minmax(0, 1fr) 440px; grid-template-rows: auto auto; column-gap: 96px; align-items: center; padding: 0; }
+.auth-brand { grid-column: 1; grid-row: 1; align-self: end; position: static; transform: none; display: flex; align-items: center; gap: 12px; margin: 0 0 18px; white-space: nowrap; }
+.auth-brand .brand-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--a-brand); color: #fff; font-size: 17px; font-weight: 800; border: 0; }
+.auth-brand strong { font-size: 18px; font-weight: 700; color: var(--a-text); }
+.auth-brand span { font-size: 13px; color: var(--a-muted); }
+.auth-intro { grid-column: 1; grid-row: 2; align-self: start; }
+.auth-layout > .auth-card { grid-column: 2; grid-row: 1 / span 2; }
+
+.auth-shell .auth-kicker, .auth-loading .auth-kicker { display: block; color: var(--a-brand); text-transform: uppercase; letter-spacing: .06em; font-size: 12px; font-weight: 800; }
+.auth-intro h1 { margin: 12px 0 14px; font-size: clamp(38px, 4.6vw, 58px); line-height: 1.05; font-weight: 800; letter-spacing: -.03em; color: var(--a-text); }
+.auth-intro h1 em { color: var(--a-brand); font-style: normal; }
+.auth-intro p { max-width: 520px; margin: 0; color: var(--a-muted); font-size: 18px; line-height: 1.6; }
+.auth-trust { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 22px; color: var(--a-muted); font-size: 14px; }
+.auth-trust span { display: inline-flex; align-items: center; gap: 6px; }
+.auth-trust svg { color: var(--a-brand); }
+
+.auth-card { width: min(100%, 440px); box-sizing: border-box; padding: 24px; background: var(--a-card); border: 1px solid var(--a-line); border-radius: 18px; box-shadow: 0 10px 40px rgb(20 26 22 / .06); color: var(--a-text); }
+.auth-card h1, .auth-card h2 { margin: 14px 0 6px; font-size: 26px; line-height: 1.2; font-weight: 800; letter-spacing: -.02em; color: var(--a-text); }
+.auth-card p { margin: 0 0 4px; color: var(--a-muted); font-size: 14.5px; line-height: 1.55; }
+.auth-card label { display: grid; gap: 6px; margin-top: 14px; color: var(--a-text); font-size: 13px; font-weight: 700; }
+.auth-card input:not([type='checkbox']):not([type='radio']) { width: 100%; min-height: 48px; box-sizing: border-box; padding: 0 14px; border: 1px solid var(--a-line-strong); border-radius: 12px; background: #fff; color: var(--a-text); font: inherit; font-size: 15px; font-weight: 500; outline: none; }
+.auth-card input::placeholder { color: var(--a-muted); opacity: .75; }
+.auth-card input:focus { border-color: var(--a-brand); box-shadow: 0 0 0 3px rgb(8 122 66 / .16); }
+.auth-card code { display: block; margin-top: 16px; padding: 12px; border-radius: 10px; background: var(--a-bg); color: var(--a-brand-hover); font-size: 12.5px; line-height: 1.7; }
+.auth-card .password-field { position: relative; display: block; }
+.auth-card .password-field input { padding-right: 48px; }
+.auth-card .password-toggle { position: absolute; top: 0; right: 0; display: grid; place-items: center; width: 48px; height: 48px; border: 0; background: transparent; color: var(--a-muted); cursor: pointer; }
+.auth-card button.primary, .auth-card .primary { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; margin-top: 18px; border: 0; border-radius: 12px; background: var(--a-brand); color: #fff; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.auth-card button.primary:hover:not(:disabled) { background: var(--a-brand-hover); }
+.auth-card button.primary:disabled { opacity: .6; cursor: not-allowed; }
+.auth-card .text-btn, .auth-card .auth-link, .auth-card .entry-link { display: block; width: 100%; min-height: 0; margin: 14px 0 0; padding: 0; border: 0; background: transparent; color: var(--a-brand); font: inherit; font-size: 14px; font-weight: 700; text-align: center; cursor: pointer; }
+.auth-card .form-error { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: #fde4e2; color: #a1271d; font-size: 13.5px; font-weight: 600; }
+.auth-card .form-success { margin-top: 12px; color: var(--a-brand-hover); font-weight: 600; }
+
+/* Owner / Worker / Promoter: a segmented control */
+.auth-mode-switch { position: static; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; margin: 0 0 18px; border: 0; border-radius: 14px; background: #eceeec; }
+.auth-mode-indicator { display: none; }
+.auth-mode-switch button { position: static; min-height: 40px; border: 0; border-radius: 11px; background: transparent; color: #46504a; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.auth-mode-switch button:hover { color: var(--a-text); }
+.auth-mode-switch button.active { background: #fff; color: var(--a-brand); box-shadow: 0 1px 3px rgb(0 0 0 / .14); }
+.auth-mode-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.auth-mode-context { color: var(--a-muted); font-size: 12px; }
+
+@media (max-width: 880px) {
+  .auth-shell, .auth-loading { place-items: start center; padding: 20px 16px 32px; }
+  .auth-layout { grid-template-columns: minmax(0, 1fr); column-gap: 0; }
+  .auth-brand { grid-row: 1; margin: 4px 0 16px; }
+  .auth-intro { display: none; }
+  .auth-layout > .auth-card { grid-column: 1; grid-row: 2; width: 100%; padding: 0; background: transparent; border: 0; box-shadow: none; }
+  .auth-loading > .auth-card, .auth-loading > form.auth-card { padding: 20px; background: var(--a-card); border: 1px solid var(--a-line); box-shadow: none; }
+}
+.auth-card input[type='checkbox'], .auth-card input[type='radio'] { width: 18px; min-height: 0; padding: 0; accent-color: var(--a-brand); }

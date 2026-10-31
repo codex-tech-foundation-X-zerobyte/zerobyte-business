@@ -1,0 +1,28 @@
+/* Trial strip, locked banner and locked screen (V8 design). */
+.notice-banner { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0 0 16px; padding: 14px 16px; border: 1px solid #f0d9a4; border-radius: 14px; background: #fff1d6; color: #7a4b00; }
+.notice-banner > div { display: grid; gap: 2px; min-width: 0; }
+.notice-banner strong { font-size: 16px; font-weight: 800; letter-spacing: -.01em; }
+.notice-banner span { font-size: 13px; }
+.notice-banner button { flex: none; min-height: 44px; padding: 0 20px; }
+.notice-banner.urgent { border-color: #efb9b3; background: #fde4e2; color: #a1271d; }
+.app.dark .notice-banner { background: #2c2410; border-color: #4a3b14; color: #f2c14e; }
+.app.dark .notice-banner.urgent { background: #331513; border-color: #5a2420; color: #ff9d94; }
+
+.locked-screen { display: grid; gap: 18px; max-width: 460px; margin: clamp(8px, 8vh, 72px) auto 0; }
+.locked-brand { display: flex; align-items: center; gap: 12px; }
+.locked-brand strong { font-size: 20px; font-weight: 800; }
+.locked-brand small { font-size: 14px; color: var(--muted); }
+.locked-card { display: grid; gap: 14px; padding: 24px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); }
+.locked-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: var(--brand-soft); color: var(--brand); }
+.locked-card h1 { margin: 0; font-size: 24px; line-height: 1.2; font-weight: 800; letter-spacing: -.02em; }
+.locked-card p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
+.locked-card button { min-height: 48px; }
+.locked-staff { padding: 12px 14px; border-radius: 12px; background: var(--panel-2); }
+
+/* What each plan includes, on the plan cards. */
+.plan-includes { list-style: none; margin: 2px 0 6px; padding: 0; display: grid; gap: 4px; font-size: 13.5px; color: var(--muted); }
+.plan-includes strong { color: var(--text); font-variant-numeric: tabular-nums; }
+.billing-plan-card .billing-plan-actions { margin-top: auto; }
+/* Status chip next to the plan name. */
+.billing-current h2 .version-badge { margin-left: 10px; font-family: inherit; font-size: 12px; font-weight: 700; vertical-align: middle; background: var(--brand-soft); color: var(--brand-hover); border: 0; }
+.billing-current h2 .version-badge-warn { background: #fff1d6; color: #7a4b00; }

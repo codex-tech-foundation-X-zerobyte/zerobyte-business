@@ -1,0 +1,72 @@
+/* ==========================================================================
+   Loading skeletons. Every placeholder copies the real layout it stands in for, so the page does not jump when the
+   data arrives. Colours come from the --sk-* tokens in theme.css (light and dark).
+   ========================================================================== */
+:root { --sk-panel: #ffffff; }
+:root[data-theme='dark'], .app.dark, .admin-shell.dark { --sk-panel: #111111; }
+
+.skeleton { animation: skeleton-shimmer 1.35s ease-in-out infinite; background-size: 400% 100%; }
+@keyframes skeleton-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
+/* ---------- Tables ---------- */
+.sk-table { display: grid; padding: 0 0 6px; }
+.sk-table-head, .sk-table-row { display: grid; align-items: center; gap: 18px; padding: 0 22px; }
+.sk-table-head { min-height: 46px; border-bottom: 1px solid var(--sk-line); }
+.sk-table-row { min-height: 62px; border-bottom: 1px solid var(--sk-line); }
+.sk-table-row:last-child { border-bottom: 0; }
+.sk-th { height: 11px; }
+.sk-td { height: 14px; }
+
+/* ---------- Metric tile (sits inside the real .metrics / .metric markup) ---------- */
+.sk-metric { display: grid; align-content: start; gap: 14px; }
+.sk-label { width: 46%; height: 12px; }
+.sk-value { width: 62%; height: 30px; }
+.sk-note { width: 78%; height: 11px; }
+
+/* ---------- Full-screen workspace loader ---------- */
+.sk-shell { min-height: 100dvh; display: grid; grid-template-columns: 246px minmax(0, 1fr); background: var(--sk-bg); }
+.sk-side { display: flex; flex-direction: column; gap: 18px; padding: 22px 16px; background: var(--sk-panel); border-right: 1px solid var(--sk-line); }
+.sk-brand { display: flex; align-items: center; gap: 12px; }
+.sk-logo { width: 32px; height: 32px; border-radius: 9px; flex: none; }
+.sk-wordmark { width: 118px; height: 18px; }
+.sk-org { height: 56px; border-radius: 14px; }
+.sk-group { display: grid; gap: 8px; margin-top: 8px; }
+.sk-group-label { width: 72px; height: 10px; margin: 0 0 4px 8px; }
+.sk-nav-item { height: 18px; margin: 9px 0 9px 8px; }
+.sk-main { min-width: 0; display: flex; flex-direction: column; }
+.sk-topbar { height: 69px; display: flex; align-items: center; justify-content: space-between; padding: 0 34px; border-bottom: 1px solid var(--sk-line); }
+.sk-crumb { width: 190px; height: 16px; }
+.sk-top-actions { display: flex; gap: 10px; }
+.sk-icon-btn { width: 36px; height: 36px; border-radius: 10px; }
+.sk-pill { width: 96px; height: 36px; border-radius: 10px; }
+.sk-content { padding: 36px 34px 50px; display: grid; gap: 24px; align-content: start; }
+.sk-page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.sk-page-titles { display: grid; gap: 12px; }
+.sk-title { width: 220px; height: 36px; }
+.sk-sub { width: min(420px, 60vw); height: 14px; }
+.sk-action { width: 150px; height: 44px; border-radius: 12px; }
+.sk-metrics-panel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); background: var(--sk-panel); border: 1px solid var(--sk-line); border-radius: 16px; overflow: hidden; }
+.sk-metric-cell { display: grid; align-content: start; gap: 14px; padding: 26px; border-right: 1px solid var(--sk-line); border-bottom: 1px solid var(--sk-line); }
+.sk-metric-cell:nth-child(2n) { border-right: 0; }
+.sk-metric-cell:nth-child(n + 3) { border-bottom: 0; }
+.sk-columns { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; }
+.sk-panel { display: grid; gap: 18px; align-content: start; padding: 24px; background: var(--sk-panel); border: 1px solid var(--sk-line); border-radius: 16px; min-height: 190px; }
+.sk-panel-title { width: 140px; height: 18px; }
+.sk-line { height: 14px; }
+.sk-bottom { display: none; }
+
+@media (max-width: 1100px) { .sk-content { padding: 30px 25px 50px; } .sk-topbar { padding: 0 25px; } }
+@media (max-width: 860px) {
+  .sk-shell { grid-template-columns: minmax(0, 1fr); padding-bottom: 72px; }
+  .sk-side { display: none; }
+  .sk-topbar { height: 60px; padding: 0 16px; }
+  .sk-crumb { width: 120px; }
+  .sk-pill { display: none; }
+  .sk-content { padding: 22px 16px 40px; gap: 18px; }
+  .sk-title { width: 160px; height: 30px; }
+  .sk-action { display: none; }
+  .sk-columns { grid-template-columns: minmax(0, 1fr); }
+  .sk-bottom { position: fixed; inset: auto 0 0 0; height: 64px; display: grid; grid-template-columns: repeat(5, 1fr); place-items: center; background: var(--sk-panel); border-top: 1px solid var(--sk-line); }
+  .sk-bottom-item { width: 44px; height: 34px; border-radius: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
