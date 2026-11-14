@@ -1,0 +1,1982 @@
+/* ==========================================================================
+   V8 page components: page header, metrics strip, cards, tables, chips, buttons, fields, side forms.
+   All values come from the design package. Scoped to the signed-in app (.app.shell).
+   ========================================================================== */
+.app.shell {
+  --line-soft: #eef1ef;
+  --warn-bg: #fff1d6;
+  --warn-ink: #7a4b00;
+  --bad-bg: #fde4e2;
+  --bad-ink: #a1271d;
+  --gray-bg: #eceeec;
+  --gray-ink: #46504a;
+}
+.app.shell.dark {
+  --line-soft: #1b1b1b;
+  --warn-bg: #2c2410;
+  --warn-ink: #f2c14e;
+  --bad-bg: #331513;
+  --bad-ink: #ff9d94;
+  --gray-bg: #1f1f1f;
+  --gray-ink: #b5b5b5;
+}
+
+/* ---------- Page header ---------- */
+.app.shell .page {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+.app.shell .page-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 4px;
+}
+.app.shell .page-heading h1 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.app.shell .page-heading .muted {
+  margin: 4px 0 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+.app.shell .page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* ---------- Metrics strip: one card, four cells (phone: four separate cards) ---------- */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: none;
+}
+.metric {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  padding: 18px 20px;
+  background: transparent;
+  border: 0;
+  border-left: 1px solid var(--line-soft);
+  border-radius: 0;
+  box-shadow: none;
+  min-width: 0;
+}
+.metric:first-child {
+  border-left: 0;
+}
+.metric > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.metric > strong {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.metric > small {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+@media (max-width: 1099px) and (min-width: 820px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .metric:nth-child(odd) {
+    border-left: 0;
+  }
+  .metric:nth-child(n + 3) {
+    border-top: 1px solid var(--line-soft);
+  }
+}
+@media (max-width: 819px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+  }
+  .metric {
+    padding: 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+  }
+  .metric:first-child {
+    border-left: 1px solid var(--line);
+  }
+  .metric > strong {
+    font-size: 24px;
+  }
+}
+
+/* ---------- Cards and tables ---------- */
+.app.shell .panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: none;
+}
+.app.shell .panel:hover {
+  border-color: var(--line);
+  box-shadow: none;
+}
+.app.shell .table-panel {
+  padding: 0;
+  overflow: hidden;
+}
+.app.shell table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.app.shell th {
+  padding: 12px 14px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--line);
+}
+.app.shell td {
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--line-soft);
+  vertical-align: middle;
+}
+.app.shell tbody tr:last-child td {
+  border-bottom: 0;
+}
+.app.shell td {
+  white-space: normal;
+}
+.app.shell td strong {
+  font-weight: 700;
+}
+.app.shell .table-wrap table {
+  min-width: 0;
+  white-space: normal;
+}
+
+/* ---------- Buttons ---------- */
+.app.shell button.primary,
+.app.shell a.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--brand);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.12s;
+}
+.app.shell button.primary:hover:not(:disabled) {
+  background: var(--brand-hover);
+}
+.app.shell button.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.app.shell button.secondary:hover:not(:disabled) {
+  background: var(--panel-2);
+}
+.app.shell button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.app.shell .text-btn {
+  white-space: nowrap;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--brand);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.app.shell .text-btn + .text-btn {
+  margin-left: 14px;
+}
+.app.shell .text-btn:disabled {
+  color: var(--muted);
+}
+
+/* ---------- Fields ---------- */
+.app.shell label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+.app.shell input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.app.shell select,
+.app.shell textarea {
+  width: 100%;
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+}
+.app.shell textarea {
+  padding: 12px 14px;
+  min-height: 96px;
+}
+.app.shell input::placeholder,
+.app.shell textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.8;
+}
+.app.shell input:focus-visible,
+.app.shell select:focus-visible,
+.app.shell textarea:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+  border-color: var(--brand);
+}
+.app.shell .field-help {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.app.shell .form-error {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--bad-bg);
+  color: var(--bad-ink);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.app.shell .form-success {
+  color: var(--brand-hover);
+  font-weight: 600;
+}
+
+/* ---------- Status chips ---------- */
+.app.shell .status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--gray-bg);
+  color: var(--gray-ink);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.app.shell .status.completed {
+  background: var(--brand-soft);
+  color: var(--brand-hover);
+}
+.app.shell .status.pending {
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+}
+.app.shell .status.refunded,
+.app.shell .status.danger-text {
+  background: var(--bad-bg);
+  color: var(--bad-ink);
+}
+
+/* ---------- Pages with a form: list on the left, form card on the right ---------- */
+.app.shell .page:has(> .form-side) {
+  grid-template-columns: minmax(0, 1fr) 340px;
+  align-items: start;
+}
+.app.shell .page:has(> .form-side) > .page-heading {
+  grid-column: 1 / -1;
+}
+.app.shell .page:has(> .form-side) > :not(.page-heading):not(.form-disclosure) {
+  grid-column: 1;
+}
+.app.shell .page:has(> .form-side) > .form-side {
+  grid-column: 2;
+  grid-row: 2 / span 12;
+}
+.app.shell .page:has(> .form-side) > .form-side ~ .form-side {
+  grid-row: auto;
+}
+.app.shell .form-side > .form-disclosure-toggle {
+  display: none;
+}
+.app.shell .form-disclosure-title {
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.app.shell .form-side .form-disclosure-body {
+  padding: 18px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.app.shell .form-side .panel,
+.app.shell .form-toggle .panel {
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+.app.shell .form-side .record-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+.app.shell .form-side .record-form > div {
+  min-width: 0;
+}
+.app.shell .form-side .record-form > div:empty {
+  display: none;
+}
+.app.shell .form-side .record-form button.primary {
+  width: 100%;
+  min-height: 48px;
+}
+
+/* Toggle mode: a button on desktop, the form opens above the list. */
+.app.shell .form-toggle .form-disclosure-toggle {
+  display: inline-flex;
+}
+.app.shell .form-toggle:not(.open) .form-disclosure-body {
+  display: none;
+}
+.app.shell .form-toggle .form-disclosure-body {
+  margin-top: 12px;
+  padding: 18px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.app.shell .page > .form-toggle {
+  grid-column: 1 / -1;
+}
+/* Several toggle buttons sit side by side; an opened form takes the full width below them. */
+.app.shell .page > .form-toggle:not(.open) {
+  display: inline-block;
+  margin: 0 10px 0 0;
+  width: auto;
+}
+.app.shell .page {
+  align-content: start;
+}
+.app.shell .page > .toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  grid-column: 1 / -1;
+}
+
+/* ---------- Tablet: forms drop below the list ---------- */
+@media (max-width: 1099px) {
+  .app.shell .page:has(> .form-side) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .app.shell .page:has(> .form-side) > .form-side {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
+
+/* ---------- Phone: a floating button opens the form full-screen ---------- */
+@media (max-width: 819px) {
+  .app.shell .page-heading h1 {
+    font-size: 26px;
+  }
+  .app.shell .form-disclosure-toggle {
+    display: inline-flex !important;
+    position: fixed;
+    left: auto;
+    width: auto;
+    right: 16px;
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+    z-index: 45;
+    min-height: 48px;
+    padding: 0 20px;
+    border-radius: 14px;
+    box-shadow: 0 8px 22px rgb(0 0 0 / 0.22);
+  }
+  .app.shell .form-disclosure + .form-disclosure .form-disclosure-toggle {
+    bottom: calc(144px + env(safe-area-inset-bottom, 0px));
+  }
+  .app.shell .form-disclosure:not(.open) .form-disclosure-body {
+    display: none;
+  }
+  .app.shell .form-disclosure.open .form-disclosure-body {
+    position: fixed;
+    inset: 0;
+    z-index: 44;
+    margin: 0;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 20px 16px calc(150px + env(safe-area-inset-bottom, 0px));
+    border: 0;
+    border-radius: 0;
+    background: var(--bg);
+  }
+  .app.shell .form-disclosure.open .form-disclosure-toggle {
+    z-index: 46;
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Receive stock: product on its own line, quantity and cost side by side. */
+.app.shell .form-side .receive-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.app.shell .form-side .receive-form > label:first-child,
+.app.shell .form-side .receive-form > label:nth-child(4),
+.app.shell .form-side .receive-form > button,
+.app.shell .form-side .receive-form > p {
+  grid-column: 1 / -1;
+}
+
+/* Table wrappers sit flush inside their card and scroll sideways when a table is wider than the card. */
+.app.shell .table-wrap,
+.app.shell .panel > .table-wrap {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow-x: auto;
+}
+.app.shell .panel > .table-wrap th:first-child,
+.app.shell .panel > .table-wrap td:first-child {
+  padding-left: 18px;
+}
+.app.shell .panel > .table-wrap th:last-child,
+.app.shell .panel > .table-wrap td:last-child {
+  padding-right: 18px;
+}
+.app.shell .table-panel > .panel-heading {
+  margin: 0;
+  padding: 16px 18px 12px;
+}
+.app.shell .table-panel > .panel-heading h2 {
+  margin: 2px 0 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.app.shell .panel-heading .section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Page search box (Inventory, Customers, Records). */
+.app.shell .page-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(420px, 100%);
+  margin: 0;
+  padding: 0 14px;
+  min-height: 48px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--muted);
+}
+.app.shell .page-search input {
+  flex: 1;
+  min-height: 0;
+  padding: 10px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.app.shell .page-search:focus-within {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent);
+}
+.app.shell .page-search input:focus-visible {
+  outline: 0;
+}
+
+.app.shell .mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.app.shell td.amount {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- Phone: the top bar already names the page, so the big heading goes; lists become a stack of cards ---------- */
+@media (max-width: 819px) {
+  .app.shell .page-heading h1,
+  .app.shell .page-heading .muted {
+    display: none;
+  }
+  .app.shell .page-heading {
+    margin: 0;
+  }
+  .app.shell .page-heading:not(:has(.page-actions)) {
+    display: none;
+  }
+  .app.shell .table-panel {
+    background: transparent;
+    border: 0;
+    min-height: 0;
+    overflow: visible;
+  }
+  .app.shell .table-panel > .panel-heading {
+    display: none;
+  }
+  .app.shell .table-wrap {
+    overflow: visible;
+  }
+  .app.shell .table-wrap tbody {
+    display: grid;
+    gap: 10px;
+  }
+  .app.shell .table-wrap tr {
+    padding: 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+  }
+  .app.shell .table-wrap td {
+    padding: 5px 0;
+    border: 0;
+  }
+  .app.shell .table-wrap td:first-child {
+    padding-bottom: 8px;
+  }
+}
+
+@media (max-width: 819px) {
+  /* Row actions (Edit, Preview, Download PDF, Share...) sit on their own line and wrap between links, never inside one. */
+  .app.shell .table-wrap td:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px 18px;
+    padding-top: 10px;
+    margin-top: 4px;
+    border-top: 1px solid var(--line-soft);
+  }
+  .app.shell .table-wrap td:last-child::before {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .app.shell .table-wrap td:last-child .text-btn + .text-btn {
+    margin-left: 0;
+  }
+}
+
+/* ---------- Sales ---------- */
+.app.shell .sale-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+.app.shell .sale-main {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.app.shell .sale-card,
+.app.shell .sale-summary {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+.app.shell .sale-card h2,
+.app.shell .sale-summary h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.app.shell .sale-add-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px;
+  gap: 12px;
+}
+.app.shell .sale-add-row > button {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+.app.shell .sale-cart {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  border-top: 1px solid var(--line-soft);
+}
+.app.shell .sale-cart-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.app.shell .sale-cart-row small {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.app.shell .sale-line-total {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.app.shell .sale-remove {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+}
+.app.shell .pay-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.app.shell .pay-options legend {
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.app.shell .pay-option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.app.shell .pay-option input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  width: 100%;
+  min-height: 0;
+  cursor: pointer;
+}
+.app.shell .pay-option.selected {
+  background: #141a16;
+  border-color: #141a16;
+  color: #fff;
+}
+.app.shell.dark .pay-option.selected {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.app.shell .pay-option:focus-within {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+.app.shell .sale-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.app.shell .sale-total strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.app.shell .sale-total-grand {
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 800;
+}
+.app.shell .sale-total-grand strong {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.app.shell .sale-summary .primary {
+  min-height: 48px;
+  width: 100%;
+}
+@media (max-width: 1099px) {
+  .app.shell .sale-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 819px) {
+  .app.shell .sale-card,
+  .app.shell .sale-summary {
+    padding: 14px;
+  }
+}
+.app.shell .sale-summary::before,
+.app.shell .sale-summary::after {
+  content: none;
+}
+
+/* Suppliers list under the purchase orders. */
+.app.shell .supplier-list {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+}
+.app.shell .supplier-list h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+}
+.app.shell .supplier-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.app.shell .supplier-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-top: 1px solid var(--line-soft);
+  font-size: 14px;
+}
+.app.shell .supplier-list li span {
+  color: var(--muted);
+  text-align: right;
+}
+
+/* ---------- Settings ---------- */
+.app.shell .settings-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.app.shell .settings-content {
+  min-width: 0;
+}
+.app.shell .settings-tab {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  transform: none;
+  box-shadow: none;
+}
+.app.shell .settings-tab svg {
+  display: none;
+}
+.app.shell .settings-tab:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+.app.shell .settings-tab.active {
+  background: var(--brand-soft);
+  color: var(--brand-hover);
+  box-shadow: inset 3px 0 0 var(--brand);
+}
+
+/* Business profile: form on the left, receipt preview on the right. */
+.app.shell .settings-stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 16px;
+  align-items: start;
+}
+.app.shell .settings-stack > * {
+  grid-column: 1;
+  min-width: 0;
+}
+.app.shell .settings-stack > .receipt-peek {
+  grid-column: 2;
+  grid-row: 1 / span 12;
+  position: sticky;
+  top: 84px;
+}
+.app.shell .settings-card {
+  padding: 18px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: none;
+}
+.app.shell .settings-card > header h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.app.shell .settings-card > header p {
+  margin: 2px 0 14px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.app.shell .receipt-peek {
+  display: grid;
+  gap: 12px;
+}
+.app.shell .receipt-peek-body {
+  display: grid;
+  gap: 10px;
+}
+.app.shell .receipt-peek-number {
+  justify-self: start;
+  padding: 3px 10px;
+  border-radius: 8px;
+  background: var(--panel-2);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+
+/* The Save bar sits at the end of the form; it only floats over the page while there are unsaved changes. */
+.app.shell .settings-savebar {
+  position: static;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.app.shell .settings-savebar.has-changes {
+  position: sticky;
+  bottom: 16px;
+  z-index: 5;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.14);
+}
+.app.shell .settings-savebar .primary {
+  min-width: 160px;
+}
+
+@media (max-width: 1099px) {
+  .app.shell .settings-stack {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .app.shell .settings-stack > .receipt-peek {
+    grid-column: 1;
+    grid-row: auto;
+    position: static;
+  }
+}
+@media (max-width: 819px) {
+  .app.shell .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .app.shell .settings-tab {
+    flex: none;
+    width: auto;
+    padding: 0 14px;
+    scroll-snap-align: center;
+  }
+  .app.shell .settings-savebar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .app.shell .settings-savebar.has-changes {
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+  .app.shell .settings-savebar .primary {
+    width: 100%;
+  }
+  .app.shell:has(.settings-savebar.has-changes) .support-chat {
+    bottom: calc(156px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ==========================================================================
+   Phone refinements (up to 819px)
+   ========================================================================== */
+.quick-actions {
+  display: none;
+}
+@media (max-width: 819px) {
+  /* The business name in the top bar is a proper 17px title. */
+  .sh-org-title .sh-org-name {
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  /* Overview: four quick actions replace the lone "Record a sale" button. */
+  .app.shell .dashboard-page > .page-heading .page-actions {
+    display: none;
+  }
+  .quick-actions {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 6px;
+  } /* always one row: four buttons side by side, even on a 320px screen */
+  .quick-actions button {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 8px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .quick-actions button span {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: var(--brand-soft);
+    color: var(--brand);
+  }
+
+  /* Only the page's main form floats; any other form is an ordinary button in the page. */
+  .app.shell .form-disclosure:not(.featured):not(.open) > .form-disclosure-toggle {
+    position: static;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    box-shadow: none;
+    z-index: auto;
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--line-strong);
+  }
+  .app.shell .form-disclosure.featured + .form-disclosure.featured .form-disclosure-toggle {
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Sales: the summary is a normal card at the end of the page. */
+  .app.shell .sale-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .app.shell .sale-summary {
+    position: static;
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .app.shell .sale-add-row {
+    grid-template-columns: minmax(0, 1fr) 96px;
+  }
+
+  /* Lists become tidy cards: title, then label/value pairs, then actions. */
+  .app.shell .table-panel {
+    padding: 0;
+  }
+  .app.shell .table-wrap {
+    margin: 0;
+  }
+  .app.shell .table-wrap table,
+  .app.shell .table-wrap tbody {
+    display: block;
+    width: 100%;
+  }
+  .app.shell .table-wrap thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .app.shell .table-wrap tbody {
+    display: grid;
+    gap: 10px;
+  }
+  .app.shell .table-wrap tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 14px;
+    padding: 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+  }
+  .app.shell .table-wrap td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+  }
+  .app.shell .table-wrap td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .app.shell .table-wrap td:not([data-label])::before {
+    display: none;
+  }
+  .app.shell .table-wrap td:first-child {
+    grid-column: 1 / -1;
+    font-size: 16px;
+    font-weight: 800;
+  }
+  .app.shell .table-wrap td:first-child::before {
+    display: none;
+  }
+  .app.shell .table-wrap td[colspan] {
+    grid-column: 1 / -1;
+  }
+  .app.shell .table-wrap td:last-child:has(button, a) {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 18px;
+    margin: 2px 0 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--line-soft);
+  }
+  .app.shell .table-wrap td:last-child:has(button, a)::before {
+    display: none;
+  }
+  .app.shell .table-wrap td[data-label^='Action']:not(:has(button, a, select)) {
+    display: none;
+  }
+  .app.shell .table-wrap td select {
+    max-width: 100%;
+  }
+  .app.shell .page > * + .table-panel {
+    margin-top: 0;
+  }
+
+  /* Records: the three tabs scroll sideways as chips instead of being squeezed. */
+  .app.shell .record-tabs {
+    display: flex;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    background: transparent;
+    border: 0;
+    scrollbar-width: none;
+  }
+  .app.shell .record-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .app.shell .record-tab {
+    flex: none;
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: var(--panel);
+    color: var(--text);
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 700;
+  }
+  .app.shell .record-tab svg {
+    display: none;
+  }
+  .app.shell .record-tab.active {
+    background: #141a16;
+    border-color: #141a16;
+    color: #fff;
+  }
+}
+
+@media (max-width: 819px) {
+  /* A closed main form is just a floating button, so its (empty) slot must not leave a gap in the page. */
+  .app.shell .form-disclosure.featured:not(.open) {
+    display: contents;
+  }
+  /* The Support bubble stays on the right and sits above the floating "+ Add ..." button when a page has one. */
+  .app.shell:has(.form-disclosure.featured) .support-chat {
+    bottom: calc(148px + env(safe-area-inset-bottom, 0px));
+  }
+  /* Card cells: no leftover table padding (it indented titles and squeezed emails). */
+  .app.shell .table-wrap td,
+  .app.shell .panel > .table-wrap td:first-child,
+  .app.shell .panel > .table-wrap td:last-child {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  .app.shell .table-wrap td {
+    overflow-wrap: break-word;
+  }
+}
+
+.support-escalate {
+  padding: 8px 14px;
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.support-escalate .text-btn {
+  font-size: 12.5px;
+}
+
+.support-queue {
+  margin: 0;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-2, rgba(128, 128, 128, 0.08));
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* Branch switcher and revenue per branch */
+.branch-switcher {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.branch-switcher-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.branch-switcher-options {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.branch-switcher-options button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.branch-switcher-options button.active {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--on-brand, #fff);
+}
+.branch-revenue {
+  margin-bottom: 16px;
+}
+.branch-revenue-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.branch-revenue-list li {
+  display: grid;
+  grid-template-columns: minmax(90px, 160px) minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+}
+.branch-revenue-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.branch-revenue-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+.branch-revenue-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand);
+}
+.branch-revenue-list small {
+  color: var(--muted);
+}
+@media (max-width: 640px) {
+  .branch-revenue-list li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .branch-revenue-bar {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+  .branch-revenue-list small {
+    grid-column: 1 / -1;
+    order: 4;
+  }
+}
+
+/* Two or three views of one page (for example Purchase orders | Suppliers): a segmented switch above the list. */
+.app.shell .segmented {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  grid-column: 1 / -1;
+  justify-self: start;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.app.shell .segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.app.shell .segmented button.active {
+  background: var(--brand);
+  color: var(--on-brand, #fff);
+}
+.app.shell .segmented b {
+  font-size: 12px;
+  opacity: 0.85;
+}
+.app.shell .supplier-list ul {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.app.shell .supplier-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.app.shell .supplier-list li:first-child {
+  border-top: 0;
+}
+
+/* Records: each item of a sale on its own line */
+.app.shell .sale-lines {
+  display: grid;
+  gap: 4px;
+  min-width: 240px;
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+}
+.app.shell .sale-lines li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: 14px;
+  padding: 3px 0;
+  border-bottom: 1px dashed var(--line);
+  font-size: 14px;
+}
+.app.shell .sale-lines li:last-child {
+  border-bottom: 0;
+}
+.app.shell .sale-line-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.app.shell .sale-line-qty {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.app.shell .sale-line-amount {
+  min-width: 84px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.app.shell .record-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.app.shell .record-filter-bar label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.app.shell .record-filter-bar select,
+.app.shell .record-filter-bar input {
+  min-height: 40px;
+  min-width: 150px;
+}
+
+/* Reports: the Net profit card is a dark card with light text in both themes (in light mode its background was white). */
+.app.shell .report-profit {
+  background: linear-gradient(145deg, #0f3d28, #0a2c1c);
+  border-color: #0a2c1c;
+  color: #d9eadf;
+}
+.app.shell .report-profit h2 {
+  color: #e7f4ec;
+}
+.app.shell .report-profit > strong {
+  color: #f1fff7;
+}
+.app.shell .report-profit p,
+.app.shell .report-profit .section-label {
+  color: #a9cdb8;
+}
+.app.shell .report-profit .profit-status.positive {
+  background: rgba(123, 230, 164, 0.2);
+  color: #9df0bf;
+}
+.app.shell .report-profit .profit-status.negative {
+  background: rgba(255, 140, 140, 0.2);
+  color: #ffb4b4;
+}
+
+/* Hub pages (Settings, Workforce): choose an area, then open it */
+.app.shell .hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  grid-column: 1 / -1;
+}
+.app.shell .hub-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 76px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.app.shell .hub-card:hover {
+  border-color: var(--brand);
+  background: var(--panel-2, var(--panel));
+}
+.app.shell .hub-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--brand-soft, rgba(34, 197, 94, 0.14));
+  color: var(--brand);
+}
+.app.shell .hub-text {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+.app.shell .hub-text strong {
+  font-size: 15.5px;
+}
+.app.shell .hub-text small {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.app.shell .hub-note {
+  flex: none;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--panel-2, rgba(128, 128, 128, 0.12));
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.app.shell .hub-chevron {
+  flex: none;
+  color: var(--muted);
+}
+.app.shell .hub-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+.app.shell .hub-back:hover {
+  border-color: var(--brand);
+}
+.app.shell .settings-page .settings-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+.app.shell .settings-page .settings-content {
+  max-width: 920px;
+}
+.app.shell .settings-page .settings-content:empty {
+  display: none;
+}
+.app.shell .table-panel > form.record-form {
+  padding: 0 18px 18px;
+}
+
+.app.shell .toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+}
+.app.shell .toolbar-row > .form-disclosure {
+  margin: 0;
+}
+.app.shell .toolbar-row > .form-toggle:not(.open) {
+  display: inline-block;
+  width: auto;
+}
+.app.shell .toolbar-row > .form-toggle.open {
+  flex: 1 1 100%;
+}
+
+.app.shell .report-bar.profit.loss {
+  background: #c0453f;
+}
+.app.shell .report-profit > strong,
+.app.shell .report-profit > strong * {
+  color: #f1fff7;
+}
+
+.support-rate {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.support-rate span {
+  margin-right: 6px;
+}
+.support-rate button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #f0a81f;
+  font-size: 20px;
+  cursor: pointer;
+}
+.support-rate button:hover {
+  background: rgba(240, 168, 31, 0.16);
+}
+
+/* Phones: the floating chat button must never sit on top of an amount (Overview recent sales) */
+@media (max-width: 760px) {
+  .activity-list .list-row {
+    padding-right: 44px;
+  }
+  .support-launcher {
+    right: 10px;
+    padding: 11px;
+  }
+}
+
+/* A figure's box must stay as wide as its card. A grid item that is allowed to grow to fit its text made the "fit to box"
+   check always pass, so eight-digit amounts spilled out of the card on small phones. */
+.metric {
+  grid-template-columns: minmax(0, 1fr);
+}
+.metric > *,
+.fit-box,
+.metric strong {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Receipt preview on a phone: it sits above the bottom tab bar and chat button, items read as lines (never wrapped
+   amounts), the totals and the action buttons are always reachable. Desktop and print are unchanged. */
+.receipt-preview-backdrop {
+  z-index: 400;
+}
+.receipt-calc {
+  display: none;
+}
+@media screen and (max-width: 560px) {
+  .receipt-preview-backdrop {
+    align-items: end;
+    padding: 10px 10px 0;
+  }
+  .receipt-preview {
+    width: 100%;
+    max-height: calc(100dvh - 10px);
+    padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+    border-radius: 18px 18px 0 0;
+  }
+  .receipt-close {
+    top: 10px;
+    right: 10px;
+  }
+  .receipt-document-header {
+    padding-right: 46px;
+    gap: 12px;
+  }
+  .receipt-title-row {
+    display: grid;
+    gap: 12px;
+    padding: 16px 0 12px !important;
+  }
+  .receipt-title-row h1 {
+    font-size: 26px;
+  }
+  .receipt-title-row .receipt-meta-grid {
+    flex: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+  .receipt-meta-grid strong {
+    font-size: 12.5px;
+    line-height: 1.3;
+  }
+  .receipt-customer {
+    padding: 12px 14px;
+  }
+  .receipt-table-wrap {
+    overflow: visible;
+  }
+  .receipt-table,
+  .receipt-table tbody,
+  .receipt-table tr,
+  .receipt-table td {
+    display: block;
+  }
+  .receipt-table thead {
+    display: none;
+  }
+  .receipt-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px 12px;
+    align-items: start;
+    padding: 11px 2px;
+    border-top: 1px solid #e5efea;
+  }
+  .receipt-table tbody tr:first-child {
+    border-top: 0;
+  }
+  .receipt-preview .receipt-table td {
+    padding: 0 !important;
+    border: 0 !important;
+    width: auto !important;
+    min-width: 0;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+  .receipt-preview .receipt-table td:first-child,
+  .receipt-preview .receipt-table td:nth-child(3),
+  .receipt-preview .receipt-table td:nth-child(4) {
+    display: none;
+  }
+  .receipt-preview .receipt-table td:nth-child(5) {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+    white-space: nowrap;
+    font-weight: 800;
+    color: #162b21;
+  }
+  .receipt-calc {
+    display: block;
+    margin-top: 3px;
+    color: #5b7468;
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+  .receipt-summary > div,
+  .receipt-detail-grid {
+    font-size: 13px;
+  }
+  .receipt-summary strong {
+    white-space: nowrap;
+  }
+  .receipt-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
+  .receipt-grand-total {
+    font-size: 15px !important;
+  }
+  .receipt-grand-total strong {
+    font-size: 19px;
+    white-space: nowrap;
+  }
+  .receipt-document-footer {
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  .receipt-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .receipt-actions > * {
+    width: 100%;
+    justify-content: center;
+    min-height: 46px;
+  }
+}
+@media screen and (max-width: 560px) {
+  .receipt-title-row .receipt-meta-grid {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+@media screen and (max-width: 560px) {
+  .receipt-preview .receipt-title-row .receipt-meta-grid {
+    width: auto;
+    max-width: none;
+    margin: 0;
+    justify-self: stretch;
+  }
+  .receipt-actions > * {
+    white-space: nowrap;
+    font-size: 14px;
+    padding-inline: 8px;
+    height: 46px;
+  }
+}
+
+@media (max-width: 359px) {
+  .quick-actions button {
+    font-size: 12px;
+    gap: 6px;
+  }
+  .quick-actions button span {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+}
+
+/* Reports: the two date fields share the row, each one wide enough to show the whole date */
+.report-date-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.report-date-fields input {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 14px;
+  padding-inline: 8px;
+}
+@media (max-width: 400px) {
+  .report-date-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Daily and weekly reports (Reports page). Uses the same tokens as the rest of the workspace, so light and dark both work. */
+.app.shell .reports-page .segmented {
+  margin-bottom: 4px;
+}
+.app.shell .periodic-report {
+  display: grid;
+  gap: 16px;
+}
+.app.shell .report-history {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.app.shell .report-history button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.app.shell .report-history button.active {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--on-brand, #fff);
+}
+.app.shell .report-history b {
+  font-size: 11px;
+  opacity: 0.85;
+}
+.app.shell .report-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.app.shell .report-head h2 {
+  margin: 2px 0 4px;
+}
+.app.shell .report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.app.shell .report-actions button,
+.app.shell .report-actions .button-like {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.app.shell .report-actions button.primary {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--on-brand, #fff);
+}
+.app.shell .periodic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.app.shell .periodic-grid h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+.app.shell .report-rows {
+  display: grid;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+.app.shell .report-rows li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+.app.shell .report-rows li:last-child {
+  border-bottom: 0;
+}
+.app.shell .report-rows small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+.app.shell .report-days ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.app.shell .report-days li {
+  display: grid;
+  grid-template-columns: 54px 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+.app.shell .report-days .bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+.app.shell .report-days .bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--brand);
+}
+.app.shell .period-switch {
+  margin-bottom: 4px;
+}
+.app.shell .metric small.metric-delta {
+  display: block;
+  font-weight: 600;
+}
+.app.shell .settings-card label.report-toggle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.app.shell .settings-card .report-toggle input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--brand);
+}
+.app.shell .settings-card .report-toggle span {
+  display: grid;
+  gap: 2px;
+}
+.app.shell .settings-card .report-toggle small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.app.shell .report-settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}

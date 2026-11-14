@@ -1,0 +1,73 @@
+{
+  "indexable": {
+    "/": {
+      "title": "Zerøbyte Business: sales, stock and customers in naira",
+      "description": "Run your business from one clear place. Record sales, track stock, manage customers and expenses and share receipts in naira. 7-day free trial.",
+      "h1": "Run your business from one clear place.",
+      "intro": "Sales, stock, customers and expenses, connected around the way Nigerian businesses actually work. Start a 7-day free trial, no card needed.",
+      "priority": "1.0",
+      "changefreq": "weekly"
+    },
+    "/promoters": {
+      "title": "Become a Zerøbyte promoter: earn by referring businesses",
+      "description": "Apply to the Zerøbyte Promoters program. Share your referral link and earn commission when a business you introduce becomes a paying customer.",
+      "h1": "Earn by introducing businesses to Zerøbyte.",
+      "intro": "Apply to become a promoter. Approved promoters get a referral code and link to share, and commission is paid once a referred business becomes a paying customer.",
+      "priority": "0.6",
+      "changefreq": "monthly"
+    },
+    "/guide": {
+      "title": "How to use Zerøbyte Business: step-by-step user guide",
+      "description": "Learn how to record sales, manage stock and customers, track expenses, print receipts and read reports in Zerøbyte Business, with screenshots.",
+      "h1": "How to use Zerøbyte Business",
+      "intro": "A step-by-step guide to recording sales, managing stock and customers, tracking expenses, sharing receipts and reading your reports.",
+      "priority": "0.8",
+      "changefreq": "monthly"
+    },
+    "/support": {
+      "title": "Zerøbyte Business support: contact us and find answers",
+      "description": "Get help with Zerøbyte Business: contact the team and find quick answers about passwords, payments, receipts, stock and staff accounts.",
+      "h1": "Support",
+      "intro": "Get help with Zerøbyte Business: contact the team and find quick answers about passwords, payments, receipts, stock and staff accounts.",
+      "priority": "0.6",
+      "changefreq": "monthly"
+    },
+    "/privacy": {
+      "title": "Privacy Policy | Zerøbyte Business",
+      "description": "How Zerøbyte Business collects, uses and protects your information, who it is shared with, how long it is kept and the choices you have.",
+      "h1": "Privacy Policy",
+      "intro": "How Zerøbyte Business collects, uses and protects your information, who it is shared with, how long it is kept and the choices you have.",
+      "priority": "0.3",
+      "changefreq": "yearly"
+    },
+    "/terms": {
+      "title": "Terms of Service | Zerøbyte Business",
+      "description": "The terms that apply when you use Zerøbyte Business: accounts, plans and payments, acceptable use and your responsibilities.",
+      "h1": "Terms of Service",
+      "intro": "The terms that apply when you use Zerøbyte Business: accounts, plans and payments, acceptable use and your responsibilities.",
+      "priority": "0.3",
+      "changefreq": "yearly"
+    },
+    "/cookies": {
+      "title": "Cookie Policy | Zerøbyte Business",
+      "description": "Which cookies Zerøbyte Business uses, why we use them, and how to accept, reject or change your analytics cookie choice at any time.",
+      "h1": "Cookie Policy",
+      "intro": "Which cookies Zerøbyte Business uses, why we use them, and how to accept, reject or change your analytics cookie choice at any time.",
+      "priority": "0.3",
+      "changefreq": "yearly"
+    },
+    "/about": {
+      "title": "About Zerøbyte Business and Sephry Tech (formerly Codex Tech Foundation)",
+      "description": "Zerøbyte Business is built by Sephry Tech, formerly known as Codex Tech Foundation. Learn who builds the product and what it does.",
+      "h1": "About Zerøbyte Business and Sephry Tech",
+      "intro": "Zerøbyte Business is built by Sephry Tech, formerly known as Codex Tech Foundation.",
+      "priority": "0.5",
+      "changefreq": "monthly"
+    }
+  },
+  "private": [
+    "/auth",
+    "/promoter-setup",
+    "/promoter-dashboard"
+  ]
+}

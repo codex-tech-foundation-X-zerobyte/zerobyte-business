@@ -1,0 +1,3 @@
+# Cloudflare Pages. Pretty URLs are automatic: guide.html is served at /guide and /guide.html redirects to /guide.
+# Unknown addresses get 404.html with a 404 status. Vercel uses vercel.json.
+/admin/*  /admin.html  200
