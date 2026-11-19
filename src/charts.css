@@ -1,0 +1,201 @@
+/* Chart colours and the draw-in animations (used by the promoter dashboard and the admin console). */
+:root {
+  --chart-1: #087a42;
+  --chart-2: #1f9fb5;
+  --chart-3: #f0a81f;
+  --chart-4: #6a5bd6;
+  --chart-5: #e0594a;
+  --chart-6: #7c8a83;
+  --chart-track: #e8ece9;
+}
+:root[data-theme='dark'],
+.app.dark,
+.admin-shell.dark,
+.promoter-shell.dark {
+  --chart-1: #3df08f;
+  --chart-2: #4cc9e0;
+  --chart-3: #f5c451;
+  --chart-4: #9d8cff;
+  --chart-5: #ff7d6e;
+  --chart-6: #8a9690;
+  --chart-track: #1e2422;
+}
+
+.chart-donut {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  margin: 0;
+}
+.chart-donut-svg {
+  overflow: visible;
+}
+.chart-donut-track {
+  stroke: var(--chart-track);
+}
+.chart-donut-slice {
+  stroke-dashoffset: 0;
+  animation: chart-donut-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes chart-donut-in {
+  from {
+    stroke-dasharray: 0 1000;
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.chart-donut-center {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  place-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+.chart-donut-center strong {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.chart-donut-center span {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.chart-legend {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font-size: 13.5px;
+}
+.chart-legend li {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+.chart-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.chart-legend span {
+  color: var(--muted);
+}
+.chart-legend b {
+  font-variant-numeric: tabular-nums;
+}
+
+.viz-bars {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(6px, 2%, 16px);
+  padding-top: 6px;
+}
+.viz-bar-col {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 6px;
+  text-align: center;
+}
+.viz-bar-value {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.viz-bar-track {
+  display: flex;
+  align-items: flex-end;
+  min-height: 0;
+  border-radius: 10px 10px 4px 4px;
+  background: color-mix(in srgb, var(--chart-track) 55%, transparent);
+}
+.viz-bar {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 10px 10px 4px 4px;
+  transform-origin: bottom;
+  animation: viz-bar-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes viz-bar-in {
+  from {
+    transform: scaleY(0);
+    opacity: 0.4;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+.viz-bar-label {
+  font-size: 11.5px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chart-empty {
+  margin: 0;
+  padding: 28px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.chart-progress {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--chart-track);
+}
+.chart-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--chart-1), var(--chart-2));
+  animation: chart-progress-in 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: left;
+}
+@keyframes chart-progress-in {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes chart-spark-in {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes chart-spark-fade {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-donut-slice,
+  .viz-bar,
+  .chart-progress-fill {
+    animation: none !important;
+    stroke-dashoffset: 0;
+    opacity: 1;
+    transform: none;
+  }
+}

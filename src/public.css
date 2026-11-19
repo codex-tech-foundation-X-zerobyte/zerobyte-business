@@ -1,0 +1,904 @@
+/* Public pages: landing, support, policy pages, the cookie banner, and the promoter programme section. */
+
+/* ---- landing navigation and footer ---- */
+.landing-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.landing-nav-link {
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+}
+.landing-nav-link:hover {
+  color: var(--text);
+  background: var(--panel-2);
+}
+@media (max-width: 720px) {
+  .landing-nav-link {
+    display: none;
+  }
+}
+.legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  align-items: center;
+}
+.legal-links a,
+.legal-links button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.legal-links a:hover,
+.legal-links button:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+/* ---- promoter programme section ---- */
+.landing-promoters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: clamp(28px, 5vw, 64px);
+  align-items: start;
+  padding: clamp(28px, 5vw, 56px);
+  margin: 0 auto;
+  max-width: 1180px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--panel);
+}
+.landing-promoters h2 {
+  margin: 8px 0 14px;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.4vw, 40px);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.promoter-rates {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.promoter-rates > div {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel-2, var(--panel));
+}
+.promoter-rates svg {
+  color: var(--brand);
+}
+.promoter-rates strong {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.6vw, 30px);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.promoter-rates span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.promoter-example {
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--brand-soft);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.promoter-steps {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.promoter-steps li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+.promoter-steps li span {
+  flex: 0 0 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--on-brand, #fff);
+  font-weight: 700;
+  font-size: 13px;
+}
+.promoter-fine {
+  display: block;
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+@media (max-width: 900px) {
+  .landing-promoters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .promoter-rates {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .promoter-rates > div {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: 12px;
+  }
+  .promoter-rates > div svg {
+    grid-row: span 2;
+  }
+}
+
+/* ---- support page ---- */
+.support-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+  margin: 22px 0 8px;
+}
+.support-card {
+  display: grid;
+  gap: 8px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  color: var(--text);
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+.support-card:hover {
+  border-color: var(--brand);
+  transform: translateY(-2px);
+}
+.support-card svg {
+  color: var(--brand);
+}
+.support-card span {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.faq {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+.faq details {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  padding: 0 18px;
+}
+.faq summary {
+  padding: 16px 0;
+  font-weight: 650;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+.faq summary::after {
+  content: '+';
+  color: var(--brand);
+  font-size: 20px;
+  line-height: 1;
+}
+.faq details[open] summary::after {
+  content: '\2212';
+}
+.faq details p {
+  margin: 0 0 16px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.legal-footer {
+  padding: 24px clamp(16px, 4vw, 48px);
+  border-top: 1px solid var(--line);
+  margin-top: 40px;
+}
+
+/* ---- cookie banner and dialog ---- */
+.cookie-banner {
+  position: fixed;
+  z-index: 9000;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  width: min(960px, calc(100% - 24px));
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px 18px;
+  align-items: center;
+  padding: 16px 18px;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: 18px;
+  box-shadow: var(--shadow-lift);
+  animation: cookie-in 0.35s ease both;
+}
+.cookie-banner p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.cookie-banner p strong {
+  color: var(--text);
+}
+.cookie-banner a {
+  color: var(--brand);
+  font-weight: 600;
+}
+.cookie-icon {
+  color: var(--brand);
+}
+.cookie-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+}
+.cookie-actions button {
+  min-height: 42px;
+  padding-inline: 16px;
+}
+@keyframes cookie-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 14px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+@media (max-width: 760px) {
+  .cookie-banner {
+    grid-template-columns: minmax(0, 1fr);
+    bottom: 0;
+    width: 100%;
+    border-radius: 18px 18px 0 0;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+  .cookie-icon {
+    display: none;
+  }
+  .cookie-actions {
+    justify-content: stretch;
+  }
+  .cookie-actions button {
+    flex: 1 1 calc(50% - 8px);
+  }
+  .cookie-actions .primary {
+    flex-basis: 100%;
+    order: -1;
+  }
+}
+.cookie-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(8, 10, 9, 0.55);
+}
+.cookie-dialog {
+  position: relative;
+  width: min(520px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  display: grid;
+  gap: 14px;
+  padding: 26px 24px 22px;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  outline: none;
+}
+.cookie-dialog h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+  padding-right: 34px;
+}
+.cookie-lede {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.cookie-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+}
+.cookie-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  cursor: default;
+}
+.cookie-row > div {
+  display: grid;
+  gap: 4px;
+}
+.cookie-row span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.cookie-row input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--brand);
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+.cookie-row .cookie-always {
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--brand);
+  font-size: 12.5px;
+}
+.cookie-actions.dialog {
+  justify-content: flex-start;
+  margin-top: 4px;
+}
+
+/* The landing page follows the same neutral black and green palette as the app (it used to be a deep green). */
+.landing {
+  --forest: #111111;
+  --forest-deep: #0a0a0a;
+  background: #0a0a0a;
+}
+.landing h1 em,
+.landing h1 .accent {
+  color: var(--mint, #3bf692);
+}
+
+/* ===== "See it in action": real screenshots of the app on the landing page ===== */
+.landing-showcase {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 72px 28px;
+  box-sizing: border-box;
+}
+.showcase-head h2 {
+  margin: 10px 0 12px;
+}
+.showcase-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 26px 0 22px;
+}
+.showcase-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.16s,
+    border-color 0.16s,
+    transform 0.16s;
+}
+.showcase-tabs button:hover {
+  border-color: var(--mint, #3bf692);
+}
+.showcase-tabs button:active {
+  transform: scale(0.96);
+}
+.showcase-tabs button.on {
+  background: var(--mint, #3bf692);
+  border-color: var(--mint, #3bf692);
+  color: #052b16;
+}
+.showcase-stage {
+  position: relative;
+  padding-bottom: 28px;
+}
+.showcase-browser {
+  width: 88%;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.55),
+    0 0 60px rgba(59, 246, 146, 0.08);
+}
+.showcase-bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 14px;
+  background: #1c1c1c;
+}
+.showcase-bar i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3a3a3a;
+}
+.showcase-bar span {
+  margin-left: 14px;
+  padding: 3px 14px;
+  border-radius: 99px;
+  background: #2a2a2a;
+  color: #a8a8a8;
+  font-size: 12px;
+}
+.showcase-browser img {
+  display: block;
+  width: 100%;
+  height: auto;
+  animation: show-in 0.45s ease;
+}
+.showcase-phone {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 24%;
+  min-width: 150px;
+  padding: 7px;
+  border-radius: 30px;
+  background: #101010;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+.showcase-phone img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 24px;
+  animation: show-in 0.45s ease;
+}
+@keyframes show-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.showcase-caption {
+  margin: 18px 0 0;
+  max-width: 560px;
+  color: var(--muted, #a8b3ac);
+  font-size: 15.5px;
+  line-height: 1.55;
+}
+.showcase-caption strong {
+  color: inherit;
+}
+@media (max-width: 860px) {
+  .landing-showcase {
+    padding: 48px 18px;
+  }
+  .showcase-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-inline: -18px;
+    padding: 2px 18px;
+    scrollbar-width: none;
+  }
+  .showcase-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .showcase-tabs button {
+    flex: none;
+  }
+  .showcase-browser {
+    display: none;
+  }
+  .showcase-phone {
+    position: relative;
+    width: min(300px, 78%);
+    margin: 0 auto;
+  }
+  .showcase-stage {
+    padding-bottom: 0;
+  }
+  .showcase-caption {
+    text-align: center;
+    margin-inline: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .showcase-browser img,
+  .showcase-phone img {
+    animation: none;
+  }
+}
+.landing-showcase .showcase-head h2 {
+  font-size: clamp(32px, 4vw, 54px);
+  letter-spacing: -0.06em;
+  line-height: 1;
+  margin: 14px 0 14px;
+}
+.landing-showcase .landing-detail {
+  max-width: 520px;
+}
+
+/* ===== Landing page on phones and small tablets: tidy header, straight hero card, aligned sections, stacked footer ===== */
+@media (max-width: 850px) {
+  .landing-nav {
+    padding: 14px 20px;
+    gap: 12px;
+  }
+  .landing-nav .brand {
+    gap: 8px;
+    min-width: 0;
+  }
+  .landing-nav .brand small {
+    display: none;
+  }
+  .landing-nav-actions {
+    gap: 4px;
+    flex: none;
+  }
+  .landing-nav-actions .text-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .landing-hero {
+    gap: 28px;
+  }
+  .landing .auth-kicker {
+    display: inline-block;
+    max-width: 100%;
+    padding: 5px 13px;
+    border-radius: 999px;
+    border: 1px solid rgba(59, 246, 146, 0.28);
+    background: rgba(59, 246, 146, 0.1);
+    color: var(--mint, #3bf692);
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .hero-visual {
+    min-height: 0;
+    display: block;
+    overflow: hidden;
+    padding-bottom: 6px;
+  }
+  .orbit,
+  .hero-globe {
+    display: none;
+  }
+  .hero-console {
+    width: 100%;
+    animation: none !important;
+    transform: none !important;
+  }
+  .console-top {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .console-top .live-dot {
+    white-space: nowrap;
+  }
+  .landing-showcase {
+    padding-inline: 0;
+  }
+  .landing-promoters {
+    padding: 22px 18px;
+    border-radius: 20px;
+  }
+  .landing-promoters .hero-actions {
+    display: grid;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .landing-promoters .hero-actions .text-btn,
+  .landing-promoters .hero-actions .secondary {
+    width: 100%;
+    justify-content: center;
+    min-height: 46px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+  }
+}
+@media (max-width: 850px) {
+  .console-top {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .console-top .live-dot {
+    position: static !important;
+    transform: none !important;
+    inset: auto !important;
+    margin: 0 0 0 auto;
+    padding: 0;
+  }
+  .hero-console {
+    overflow: hidden;
+  }
+}
+/* the "● secure" badge in the hero card: polish.css turns .live-dot into a 7 px dot, which squeezed this text out of view */
+.landing .console-top .live-dot {
+  display: inline-block;
+  width: auto;
+  height: auto;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  animation: none;
+  color: #54d995;
+  white-space: nowrap;
+  margin: 0 0 0 auto;
+}
+.landing-showcase {
+  padding-inline: 0;
+}
+@media (min-width: 851px) {
+  .showcase-browser {
+    width: 84%;
+  }
+  .showcase-phone {
+    width: 22%;
+  }
+}
+
+/* ===== Landing footer: brand + call to action, two link columns, copyright bar ===== */
+.landing-footer {
+  margin: 0;
+  padding: 56px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: #070707;
+  color: #a8a8a8;
+}
+.footer-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(0, 1fr));
+  gap: 40px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 28px 44px;
+}
+.footer-brand {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  justify-items: start;
+}
+.footer-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-size: 19px;
+}
+.footer-logo img,
+.footer-logo svg {
+  height: 30px;
+  width: auto;
+}
+.footer-brand p {
+  margin: 0;
+  max-width: 300px;
+  color: #8d8d8d;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.footer-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid rgba(59, 246, 146, 0.4);
+  border-radius: 999px;
+  background: rgba(59, 246, 146, 0.08);
+  color: var(--mint, #3bf692);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.16s,
+    transform 0.16s;
+}
+.footer-cta:hover {
+  background: rgba(59, 246, 146, 0.16);
+}
+.footer-cta:active {
+  transform: scale(0.97);
+}
+.footer-col {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+.footer-col h3 {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.footer-col a,
+.footer-col button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #a8a8a8;
+  font: inherit;
+  font-size: 14.5px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.footer-col a:hover,
+.footer-col button:hover {
+  color: #fff;
+}
+.footer-base {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 24px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 18px 28px calc(24px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #767676;
+  font-size: 12.5px;
+  box-sizing: border-box;
+}
+@media (max-width: 850px) {
+  .landing-footer {
+    padding-top: 40px;
+  }
+  .footer-inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 20px;
+    padding: 0 20px 32px;
+  }
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+  .footer-base {
+    padding-inline: 20px;
+    flex-direction: column;
+  }
+}
+
+/* ---- "Built by Sephry Tech (formerly Codex Tech Foundation)" ---- */
+.built-by {
+  font-size: inherit;
+  color: inherit;
+}
+.built-by a {
+  color: inherit;
+  text-decoration: none;
+}
+.built-by a:hover,
+.built-by a:focus-visible {
+  text-decoration: underline;
+}
+.built-by strong {
+  font-weight: 700;
+}
+.legal-built {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.legal-footer > span {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+.legal-footer > span .built-by {
+  color: var(--muted);
+  font-size: 13px;
+}
+.landing-about {
+  padding: 64px 0 28px;
+}
+.landing-about h2 {
+  margin: 10px 0 12px;
+  font-size: clamp(26px, 3.4vw, 40px);
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+.landing-about p {
+  max-width: 62ch;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.landing-about a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* The footer on the legal, support and promoter pages carries both the landing-footer and legal-footer styles; the dark
+   landing style used to win and squeeze it into a narrow block flush against the left edge. Give it the full width. */
+.landing-footer.legal-footer {
+  max-width: none; /* an older rule capped it at 1040px, flush left */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 40px 0 0;
+  padding: 22px clamp(16px, 4vw, 48px) calc(22px + env(safe-area-inset-bottom, 0px));
+}
+.landing-footer.legal-footer .legal-links {
+  width: auto;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
