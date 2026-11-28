@@ -1,0 +1,9 @@
+# Cloudflare (Pages, or a Worker with static assets). Pretty URLs are automatic: guide.html is served at /guide and
+# /guide.html redirects to /guide. Unknown addresses get 404.html with a 404 status. Vercel uses vercel.json.
+/admin/*  /admin  200
+# The signed-in app lives at /app/<screen> (for example /app/sales). Serve the app shell for those addresses so a
+# refresh or a bookmarked link opens the same screen instead of a 404.
+# The destination is "/" and NOT "/index.html": Cloudflare refuses a rule that ends in /* and points at /index(.html)
+# ("Infinite loop detected", error 100324), and one refused rule fails the whole deploy.
+/app  /  200
+/app/*  /  200
